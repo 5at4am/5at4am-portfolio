@@ -1,0 +1,21 @@
+
+> satyam-portfolio@1.0.0 dev
+> next dev
+
+   ▲ Next.js 15.5.25
+   - Local:        http://localhost:3000
+   - Network:      http://172.31.240.1:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 7.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 20.5s (1459 modules)
+ ✓ Compiled in 2.8s (662 modules)
+ GET / 200 in 23585ms
+ GET / 200 in 593ms
+ GET / 200 in 578ms
+ GET / 200 in 662ms
+ GET / 200 in 680ms
+ GET / 200 in 531ms
+ GET / 200 in 470ms

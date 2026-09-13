@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --canvas: #000000;
+    --accent: #ffffff;
+    --accent-deep: #d4d4d4;
+    --accent-warm: #f5f5f5;
+    --paper: #ffffff;
+    --ink-muted: #8a8a8a;
+    --line-subtle: #262626;
+  }
+
+  * {
+    border-color: var(--line-subtle);
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--paper);
+    font-family: var(--font-onest), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--canvas);
+  }
+
+  @keyframes border-glow-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--canvas);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-subtle);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

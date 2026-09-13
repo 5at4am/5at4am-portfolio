@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Monochrome AI task manager: robot assistant organizing task cards">
+  <defs>
+    <radialGradient id="taskGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="1200" height="800" fill="#000000"/>
+
+  <!-- Ambient glow -->
+  <circle cx="300" cy="380" r="300" fill="url(#taskGlow)"/>
+
+  <!-- Robot assistant -->
+  <!-- Antenna -->
+  <line x1="280" y1="240" x2="280" y2="190" stroke="#D4D4D4" stroke-width="2"/>
+  <circle cx="280" cy="178" r="9" fill="#FFFFFF"/>
+  <!-- Spark above head -->
+  <path d="M 272 150 h 16 M 280 142 v 16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 330 160 L 340 170 L 330 180 L 320 170 Z" fill="#FFFFFF"/>
+  <!-- Head -->
+  <rect x="200" y="240" width="160" height="140" rx="60" fill="#0A0A0A" stroke="#FFFFFF" stroke-width="2.5"/>
+  <!-- Eyes -->
+  <circle cx="250" cy="300" r="14" fill="#FFFFFF"/>
+  <circle cx="310" cy="300" r="14" fill="#FFFFFF"/>
+  <!-- Body -->
+  <rect x="220" y="400" width="120" height="160" rx="40" fill="#0A0A0A" stroke="#8A8A8A" stroke-width="2"/>
+  <!-- Chest light + heartbeat -->
+  <circle cx="280" cy="440" r="12" fill="#FFFFFF"/>
+  <path d="M 240 470 L 260 470 L 270 458 L 290 482 L 300 470 L 320 470" fill="none" stroke="#D4D4D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Arms -->
+  <line x1="220" y1="440" x2="170" y2="480" stroke="#8A8A8A" stroke-width="2"/>
+  <circle cx="165" cy="485" r="10" fill="#0A0A0A" stroke="#8A8A8A" stroke-width="2"/>
+  <line x1="340" y1="440" x2="390" y2="480" stroke="#8A8A8A" stroke-width="2"/>
+  <circle cx="395" cy="485" r="10" fill="#0A0A0A" stroke="#8A8A8A" stroke-width="2"/>
+
+  <!-- Connection from robot to cards -->
+  <path d="M 400 480 C 460 480, 480 420, 520 400" fill="none" stroke="#D4D4D4" stroke-width="2" stroke-dasharray="2 10" opacity="0.6"/>
+  <circle cx="520" cy="400" r="4" fill="#FFFFFF"/>
+
+  <!-- Task card 1 (done) -->
+  <rect x="520" y="200" width="560" height="110" rx="16" fill="#0A0A0A" stroke="#FFFFFF" stroke-width="2.5"/>
+  <circle cx="560" cy="255" r="16" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+  <path d="M 552 255 L 558 262 L 570 248" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="600" y1="248" x2="820" y2="248" stroke="#D4D4D4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="600" y1="272" x2="740" y2="272" stroke="#8A8A8A" stroke-width="2" stroke-linecap="round"/>
+  <rect x="960" y="232" width="90" height="26" rx="13" fill="#FFFFFF"/>
+  <line x1="975" y1="245" x2="1035" y2="245" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Task card 2 (in progress) -->
+  <rect x="540" y="330" width="560" height="110" rx="16" fill="#0A0A0A" stroke="#8A8A8A" stroke-width="2"/>
+  <circle cx="580" cy="385" r="16" fill="none" stroke="#8A8A8A" stroke-width="2.5"/>
+  <line x1="620" y1="378" x2="840" y2="378" stroke="#D4D4D4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="620" y1="402" x2="760" y2="402" stroke="#8A8A8A" stroke-width="2" stroke-linecap="round"/>
+  <rect x="980" y="362" width="90" height="26" rx="13" fill="none" stroke="#8A8A8A" stroke-width="1.5"/>
+
+  <!-- Task card 3 (queued) -->
+  <rect x="500" y="460" width="560" height="110" rx="16" fill="#0A0A0A" stroke="#8A8A8A" stroke-width="2"/>
+  <circle cx="540" cy="515" r="16" fill="none" stroke="#8A8A8A" stroke-width="2.5"/>
+  <line x1="580" y1="508" x2="800" y2="508" stroke="#D4D4D4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="580" y1="532" x2="700" y2="532" stroke="#8A8A8A" stroke-width="2" stroke-linecap="round"/>
+  <rect x="900" y="500" width="130" height="8" rx="4" fill="#262626"/>
+  <rect x="900" y="500" width="90" height="8" rx="4" fill="#FFFFFF"/>
+
+  <!-- Decorative sparks (top right) -->
+  <path d="M 1072 140 h 16 M 1080 132 v 16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="1040" cy="120" r="6" fill="none" stroke="#8A8A8A" stroke-width="1.5"/>
+  <circle cx="1120" cy="160" r="4" fill="#8A8A8A"/>
+</svg>

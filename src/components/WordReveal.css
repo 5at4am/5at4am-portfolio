@@ -1,0 +1,9 @@
+.word {
+  display: inline-block;
+}
+
+/* The text wrapper must not create a layout box: children (buttons, flex
+   rows, tags) keep participating in the parent container's flex/grid layout. */
+.scroll-reveal-text {
+  display: contents;
+}
