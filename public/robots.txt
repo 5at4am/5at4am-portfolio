@@ -1,7 +1,6 @@
-# robots.txt for satyamraj.dev
+# robots.txt for 5at4am.vercel.app
 User-agent: *
 Allow: /
 Disallow: /api/
 
-Host: https://satyamraj.dev
-Sitemap: https://satyamraj.dev/sitemap.xml
+Sitemap: https://5at4am.vercel.app/sitemap.xml

@@ -53,6 +53,7 @@ export default function LogoLoop() {
   return (
     <section
       aria-label="Technologies"
+      data-speed="0.8"
       className="relative overflow-hidden border-y border-white/5 py-8"
     >
       <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">

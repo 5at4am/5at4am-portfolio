@@ -9,6 +9,10 @@ import { smootherStore } from "@/lib/smoother";
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
+// Resize events on mobile fire scroll-jitter (address bar collapse); ignore
+// the factor changes that aren't real layout changes.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 /**
  * SmoothScroll — GSAP ScrollSmoother (free since GSAP 3.13; this project is on
  * 3.15, so no Club membership is required).
@@ -48,12 +52,18 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     const smoother = ScrollSmoother.create({
       wrapper,
       content,
-      smooth: 1.2,
-      effects: false, // we don't use data-speed/data-lag
+      smooth: 1.4,
+      effects: true, // enables data-speed / data-lag parallax layers
       smoothTouch: 0.1,
     });
 
     smootherStore.current = smoother;
+
+    // Re-measure trigger positions once webfonts finish loading (font swap
+    // changes layout heights and would leave pinned/scrubbed tweens misaligned).
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
+    }
 
     return () => {
       smootherStore.current = null;

@@ -69,6 +69,7 @@ export const profile: Profile = {
       links: {
         github: "https://github.com/5at4am",
       },
+      image: "/images/rag-data-explorer.svg",
       imagePrompt:
         "Black and white futuristic data visualization dashboard, monochrome data streams flowing through neural network nodes, CSV tables transforming into insights, dark cinematic lighting, grayscale, high contrast, premium tech aesthetic",
       highlights: [
@@ -90,6 +91,7 @@ export const profile: Profile = {
       links: {
         github: "https://github.com/5at4am",
       },
+      image: "/images/ai-task-manager.svg",
       imagePrompt:
         "Black and white futuristic AI task management interface, monochrome task cards and checkmarks, robot assistant organizing workflow, dark cinematic lighting, grayscale, high contrast, premium tech aesthetic",
       highlights: [

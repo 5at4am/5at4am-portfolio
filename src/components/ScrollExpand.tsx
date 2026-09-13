@@ -49,6 +49,9 @@ export default function ScrollExpand({
             end: "bottom top",
             pin: true,
             scrub: true,
+            // Pre-cushions the start/end of the pin so the smoother doesn't
+            // jerk on the sudden fixed-position handoff.
+            anticipatePin: 1,
           },
         }
       );

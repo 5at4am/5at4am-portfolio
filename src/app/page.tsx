@@ -1,5 +1,9 @@
 import Navbar from "@/components/navbar";
+import ScrollProgress from "@/components/ScrollProgress";
 import SmoothScroll from "@/components/SmoothScroll";
+import Image from "next/image";
+import Link from "next/link";
+import { Award, BadgeCheck, Brain, Search, Bot } from "lucide-react";
 import ScrollExpand from "@/components/ScrollExpand";
 import WordReveal from "@/components/WordReveal";
 import BorderGlow from "@/components/BorderGlow";
@@ -14,6 +18,7 @@ export default function Home() {
       {/* Fixed Navbar stays OUTSIDE the smoother so its fixed positioning and
           scroll-spy aren't affected by the wrapper transform. */}
       <Navbar />
+      <ScrollProgress />
       <SmoothScroll>
         <main id="top" className="md:pl-[280px]">
           {/* Hero */}
@@ -41,11 +46,16 @@ export default function Home() {
             />
           </div>
           <div className="relative z-10 grid w-full items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-accent">
-                Available for AI Engineering roles
-              </p>
-              <h1 className="mt-6 text-6xl font-black leading-none tracking-tight md:text-8xl">
+            <div className="relative">
+              {/* Soft ambient glow behind the name */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-x-4 -inset-y-10 text-7xl font-black leading-none tracking-tight text-white/[0.06] blur-3xl select-none md:text-9xl"
+              >
+                5at4am
+              </span>
+
+              <h1 className="relative z-10 mt-6 text-7xl font-black leading-none tracking-tight md:text-9xl bg-gradient-to-r from-white via-white/90 to-accent/60 bg-clip-text text-transparent">
                 <Shuffle
                   tag="span"
                   text="5at4am"
@@ -64,13 +74,25 @@ export default function Home() {
                   scrambleCharset="satyam540"
                   textAlign="left"
                 />
-                <br />
-                <span className="text-accent">{profile.title}</span>
               </h1>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-muted">
+
+              <p className="relative z-10 mt-5 text-xl font-medium tracking-[0.12em] text-paper/50">
+                Satyam Raj
+              </p>
+
+              <p className="relative z-10 mt-3 text-sm font-medium uppercase tracking-[0.2em] text-accent">
+                {profile.title}
+              </p>
+
+              <p className="relative z-10 mt-8 max-w-xl text-lg leading-relaxed text-ink-muted">
                 {profile.tagline}. Building with LLMs, RAG, and agentic workflows.
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+
+              <p className="relative z-10 mt-3 text-xs font-medium uppercase tracking-[0.2em] text-accent/70">
+                Available for new roles
+              </p>
+
+              <div className="relative z-10 mt-8 flex flex-wrap gap-4">
                 <BorderGlow href="#projects">View Projects</BorderGlow>
                 <a
                   href="/resume.pdf"
@@ -82,13 +104,18 @@ export default function Home() {
                 </a>
               </div>
             </div>
-            {/* Hero visual slot — replace the placeholder below with your image.
-                Keep data-expand on the wrapper so the scroll animation still works. */}
+            {/* Hero visual — keep data-expand on the wrapper so the scroll animation still works. */}
             <div data-expand className="mx-auto w-full max-w-md">
-              <div className="flex aspect-[4/5] items-center justify-center border border-white/10 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.03)_0px,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_12px)]">
-                <p className="px-6 text-center text-sm text-ink-muted">
-                  Hero visual — your image goes here
-                </p>
+              <div className="relative aspect-[4/5] overflow-hidden border border-white/10">
+                <Image
+                  src="/images/satyam_img.png"
+                  alt={`${profile.name} — portrait`}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 28rem"
+                  className="object-cover"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-canvas/40 via-transparent to-transparent" />
               </div>
             </div>
           </div>
@@ -105,6 +132,7 @@ export default function Home() {
           enableBlur
           baseRotation={5}
           blurStrength={10}
+          dataSpeed={0.92}
         >
           About me
         </WordReveal>
@@ -143,6 +171,7 @@ export default function Home() {
           enableBlur
           baseRotation={5}
           blurStrength={10}
+          dataSpeed={0.92}
         >
           Experience
         </WordReveal>
@@ -186,6 +215,46 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Achievements & certifications */}
+      <section id="achievements" className="border-t border-white/5 px-6 py-24 md:px-12">
+        <WordReveal
+          containerClassName="text-4xl font-extrabold tracking-tight md:text-5xl text-paper"
+          baseOpacity={0}
+          enableBlur
+          baseRotation={5}
+          blurStrength={10}
+          dataSpeed={0.92}
+        >
+          Achievements &amp; certifications
+        </WordReveal>
+        <ul className="mt-10 max-w-3xl space-y-6">
+          {profile.achievements.map((a) => (
+            <WordReveal
+              key={a.title}
+              as="li"
+              baseOpacity={0}
+              enableBlur
+              baseRotation={0}
+              blurStrength={10}
+            >
+              <div className="flex items-start gap-4">
+                <span className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 text-accent">
+                  {a.tier === "award" ? (
+                    <Award className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <BadgeCheck className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </span>
+                <div>
+                  <p className="font-semibold text-paper">{a.title}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{a.org}</p>
+                </div>
+              </div>
+            </WordReveal>
+          ))}
+        </ul>
+      </section>
+
       {/* Projects */}
       <section id="projects" className="border-t border-white/5 px-6 py-24 md:px-12">
         <WordReveal
@@ -194,6 +263,7 @@ export default function Home() {
           enableBlur
           baseRotation={5}
           blurStrength={10}
+          dataSpeed={0.92}
         >
           Projects
         </WordReveal>
@@ -208,17 +278,24 @@ export default function Home() {
               baseRotation={0}
               blurStrength={10}
             >
-              {/* Project image slot — set project.image in src/lib/data.ts
-                  (e.g. "/images/rag-data-explorer.png") to show it here. */}
+              {/* Project image */}
               {project.image && (
                 <img
                   src={project.image}
-                  alt={project.title}
+                  alt={`${project.title} — interface preview`}
+                  width={800}
+                  height={450}
+                  loading="lazy"
                   className="mb-5 aspect-video w-full border border-white/10 object-cover"
                 />
               )}
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-bold text-paper">{project.title}</h3>
+                <Link
+                  href={`/projects/${project.slug}`}
+                  className="text-lg font-bold text-paper transition-colors hover:text-accent"
+                >
+                  {project.title}
+                </Link>
                 <span className="text-xs text-ink-muted">{project.year}</span>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-ink-muted">{project.description}</p>
@@ -229,18 +306,74 @@ export default function Home() {
                   </span>
                 ))}
               </div>
-              {project.links.github && (
-                <a
-                  href={project.links.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-5 inline-block text-sm font-medium text-accent hover:underline"
+              <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
+                <Link
+                  href={`/projects/${project.slug}`}
+                  className="inline-block font-medium text-accent hover:underline"
                 >
-                  View on GitHub →
-                </a>
-              )}
+                  View case study →
+                </Link>
+                {project.links.github && (
+                  <a
+                    href={project.links.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block font-medium text-accent hover:underline"
+                  >
+                    View on GitHub →
+                  </a>
+                )}
+              </div>
             </WordReveal>
           ))}
+        </div>
+      </section>
+
+      {/* What I do */}
+      <section id="what-i-do" className="border-t border-white/5 px-6 py-24 md:px-12">
+        <WordReveal
+          containerClassName="text-4xl font-extrabold tracking-tight md:text-5xl text-paper"
+          baseOpacity={0}
+          enableBlur
+          baseRotation={5}
+          blurStrength={10}
+          dataSpeed={0.92}
+        >
+          What I do
+        </WordReveal>
+        <div className="mt-10 grid max-w-4xl gap-8 md:grid-cols-3">
+          {profile.whatIDo.map((item) => {
+            const Icon =
+              item.icon === "brain" ? Brain : item.icon === "search" ? Search : Bot;
+            return (
+              <WordReveal
+                key={item.title}
+                as="div"
+                baseOpacity={0}
+                enableBlur
+                baseRotation={0}
+                blurStrength={10}
+              >
+                <Link
+                  href={item.href}
+                  className="group flex h-full flex-col rounded-lg border border-white/10 p-6 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-accent transition-colors group-hover:border-accent/40">
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-5 text-lg font-bold text-paper transition-colors group-hover:text-accent">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                    {item.description}
+                  </p>
+                  <span className="mt-4 inline-block text-sm font-medium text-accent">
+                    Learn more →
+                  </span>
+                </Link>
+              </WordReveal>
+            );
+          })}
         </div>
       </section>
 
@@ -252,6 +385,7 @@ export default function Home() {
           enableBlur
           baseRotation={5}
           blurStrength={10}
+          dataSpeed={0.92}
         >
           Skills
         </WordReveal>
@@ -291,6 +425,7 @@ export default function Home() {
           enableBlur
           baseRotation={5}
           blurStrength={10}
+          dataSpeed={0.92}
         >
           Let&apos;s talk
         </WordReveal>
@@ -342,6 +477,7 @@ export default function Home() {
           // of the default range are unreachable — use the full enter → max scroll range.
           wordAnimationStart="top bottom"
           wordAnimationEnd="bottom bottom-=96px"
+          dataSpeed={0.9}
         >
           © {new Date().getFullYear()} {profile.name}. Built with Next.js.
         </WordReveal>

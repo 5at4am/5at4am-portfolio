@@ -46,6 +46,12 @@ type WordRevealProps = {
   rotationEnd?: string;
   wordAnimationStart?: string;
   wordAnimationEnd?: string;
+  /**
+   * Parallax scroll speed (0.5 = half speed, 1.5 = faster). Placed as a
+   * `data-speed` attribute consumed by ScrollSmoother when `effects: true`.
+   * Rendered as a static (no-op) attribute otherwise — safe to pass always.
+   */
+  dataSpeed?: number;
 };
 
 const splitTextNodes = (children: ReactNode): ReactNode => {
@@ -89,6 +95,7 @@ const WordReveal = ({
   blurStrength = 4,
   containerClassName = "",
   textClassName = "",
+  dataSpeed,
   rotationEnd = "bottom bottom",
   wordAnimationStart = "top bottom-=40%",
   wordAnimationEnd = "bottom bottom",
@@ -171,7 +178,11 @@ const WordReveal = ({
 
   return createElement(
     as,
-    { ref: containerRef, className: `scroll-reveal ${containerClassName}`.trim() },
+    {
+      ref: containerRef,
+      className: `scroll-reveal ${containerClassName}`.trim(),
+      ...(dataSpeed !== undefined && { "data-speed": dataSpeed }),
+    },
     createElement(
       "span",
       { className: `scroll-reveal-text ${textClassName}`.trim() },
