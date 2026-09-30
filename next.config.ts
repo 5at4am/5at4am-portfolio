@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Deployed as a static export on GitHub Pages (5at4am.github.io serves the
+  // root of this export). The sketchbook CORS rule below cannot exist on Pages,
+  // so the iframe fonts rely on same-origin serving instead of a header rule.
+  output: "export",
   turbopack: {
     rules: {
       // The vendored ThreeUI 3D Paper documents are imported as raw text by
@@ -21,17 +25,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  async headers() {
-    return [
-      {
-        // The ThreeUI sketchbook document is mounted in a sandboxed iframe with an
-        // opaque origin, so its @font-face requests are CORS restricted. Serving the
-        // assets with a wildcard origin keeps the authored fonts loading.
-        source: "/sketchbook/:path*",
-        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
-      },
-    ];
-  },
-};
+  };
 
 export default nextConfig;
