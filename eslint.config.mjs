@@ -12,7 +12,20 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party agent skills, not project source.
+    ".agents/**",
   ]),
+  {
+    // `src/shaders` holds vendored ThreeUI sources kept byte-for-byte against
+    // their published SHA-256 digests, so they are not ours to refactor. The
+    // authored `ThreeDPaper` resets its own ready state from an effect, which
+    // the React Compiler lint flags; the host components under
+    // `src/components` still get the rule.
+    files: ["src/shaders/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

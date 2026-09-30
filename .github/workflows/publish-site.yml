@@ -1,0 +1,66 @@
+name: Publish site
+
+# 5at4am.me is served by the 5at4am/5at4am.github.io user site repo.
+# This workflow mirrors site/ into that repo whenever site/ changes here.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/publish-site.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate build files
+        run: |
+          set -euo pipefail
+          test -f site/index.html || { echo "site/index.html missing"; exit 1; }
+          # GitHub Pages breaks on a capitalised entry file.
+          case site/index.html in
+            */[A-Z]*) echo "site/index.html must be lowercase"; exit 1 ;;
+          esac
+          test -f site/CNAME || { echo "site/CNAME missing"; exit 1; }
+          grep -q "5at4am.me" site/CNAME || { echo "CNAME must contain 5at4am.me"; exit 1; }
+
+      - name: Mirror into the pages repo
+        env:
+          PAGES_REPO: 5at4am/5at4am.github.io
+          PAGES_PAT: ${{ secrets.PAGES_PAT }}
+        run: |
+          set -euo pipefail
+          target="https://x-access-token:${PAGES_PAT}@github.com/${PAGES_REPO}.git"
+
+          workdir="$(mktemp -d)"
+          git clone --depth 1 "$target" "$workdir/pages"
+          cd "$workdir/pages"
+
+          # Remove everything the mirror owns, keep the repo's own .git only.
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+
+          cp -R "$GITHUB_WORKSPACE/site/." .
+          touch .nojekyll
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No change to publish."
+            exit 0
+          fi
+          git commit -m "Publish site from 5at4am@${GITHUB_SHA::8}"
+          git push origin HEAD
+          echo "Published to ${PAGES_REPO}."

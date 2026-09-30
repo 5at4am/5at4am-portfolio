@@ -1,0 +1,75 @@
+{
+  "$comment": "Provenance record for the vendored ThreeUI 3D Paper sources. Regenerate with `npm run verify:shaders` after any intentional update; never hand-edit the vendored files, they are kept byte-for-byte against these digests.",
+  "component": "3d-paper",
+  "library": "@designcodeio/threeui",
+  "variant": "original",
+  "retrievedFrom": "https://threeui.com/source-code/3d-paper.json",
+  "revision": "14b22956a715",
+  "externalAssets": [],
+  "files": [
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper.html",
+      "language": "html",
+      "role": "canonical-source",
+      "bytes": 630848,
+      "lines": 548,
+      "sha256": "14b22956a715a2b6396f568e02ebb84cf0f06db9ff3c804ba0f35ba77f19e363"
+    },
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper-estrel.html",
+      "language": "html",
+      "role": "variant-source",
+      "bytes": 630880,
+      "lines": 548,
+      "sha256": "7ac6bbf8925bb9920860f0fa48b595912c5b193341493a3239637d55a3745fe3"
+    },
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper-wiiz.html",
+      "language": "html",
+      "role": "variant-source",
+      "bytes": 630918,
+      "lines": 548,
+      "sha256": "cf57ff5f98db1c792793a799fc47b4a631b4c6cd723523b374dfb36f755ab2d2"
+    },
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper-site-of-the-year.html",
+      "language": "html",
+      "role": "variant-source",
+      "bytes": 633404,
+      "lines": 613,
+      "sha256": "fdef93fa96a3927430ef35411af70568c56b9488921aead8f36be36800689b7d"
+    },
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper-japanese.html",
+      "language": "html",
+      "role": "variant-source",
+      "bytes": 633704,
+      "lines": 625,
+      "sha256": "4e929b9c3feaa635c6bc45e5c556243395318d4d7feb4d6a85190768b3b9f738"
+    },
+    {
+      "path": "src/shaders/3d-paper/sources/3d-paper-certificate.html",
+      "language": "html",
+      "role": "variant-source",
+      "bytes": 634005,
+      "lines": 630,
+      "sha256": "0cb83da723e1a54f1a2e1124bc26a27d608afc3ba42ec0b116807e2e2ae5fb32"
+    },
+    {
+      "path": "src/shaders/3d-paper/ThreeDPaper.tsx",
+      "language": "tsx",
+      "role": "component",
+      "bytes": 3465,
+      "lines": 111,
+      "sha256": "d46acdfb70427a6507c8633712ea962bbaf27e221bd04b0ab9c8a2ad0a6cf52d"
+    },
+    {
+      "path": "src/shaders/threeui.css",
+      "language": "css",
+      "role": "shared-style",
+      "bytes": 40715,
+      "lines": 1775,
+      "sha256": "efe4447139f1358dd8e9be68edf6fa46cbefbd1de423a4d6c439ca61d2c8eccf"
+    }
+  ]
+}
