@@ -208,6 +208,22 @@
   }
 }
 
+/* About's editorial marker: a diagonal ink-wash laid under the highlighted
+   phrases of the bio. The ink is `--primary`, so it is near-black in the light
+   theme and near-white in the dark one — the same inversion every other accent
+   on the site uses. `box-decoration-break: clone` keeps the wash intact when a
+   phrase wraps across lines. */
+.about-highlight {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-image: linear-gradient(
+    104deg,
+    color-mix(in oklab, var(--primary) 20%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 7%, transparent) 36%,
+    transparent 60%
+  );
+}
+
 @layer base {
   /* Theme-switch transitions.
      Scoped to the elements that actually carry a themed surface, border, or
@@ -243,5 +259,442 @@
     transition-property: color, background-color, border-color, fill, stroke;
     transition-duration: 200ms;
     transition-timing-function: ease-out;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Bencho blocks: the draggable ball, the eye tracker inside it, the contact
+   fan. Three components, MIT licensed, bencho.dev/licence.
+
+   ── WHY THE TOKENS BELOW ARE NOT IN `:root` ──────────────────────────────
+   These three blocks arrive with a stylesheet that reads about two dozen
+   custom properties and defines none of them. Every one is mapped here to
+   what this project already uses for the same job — `--foreground` for ink,
+   `--card` for a raised surface, `--font-geist-mono` for the UI mono — and
+the whole map is declared on the component root that needs it rather
+   than on `:root`.
+
+   That placement is the point. A global would make these look like this
+   project's design tokens, and the next block to read `--ink` would inherit
+   a value that was chosen to make one fan's caption legible and had
+   nothing to do with the rest of the site. The eye tracker's four travel
+   with the component as inline styles instead (see `TONES` in
+   eye-tracker.tsx), because there the fill pair is a per-instance decision
+   rather than a per-theme one.
+
+   Anything ending `-rgb` is three BARE numbers, not a colour, because the
+   CSS below builds `rgb()` from it. --ink-rgb is the light theme's ink
+   (9 9 11) and --shadow-rgb the same: a shadow on a dark background wants a
+   darker black, not the white that the foreground becomes there.
+
+   The dark theme needed no rule of its own. Upstream keys its dark variants
+   off `[data-theme="dark"]`; this project uses `next-themes` and puts `.dark`
+   on <html>. Mapping every value onto a token that is already theme-scoped
+inverts all of them at once, which is a better outcome than carrying two
+   parallel token systems and keeping them in step.
+
+   The map hangs off `.ball-overlay`, the single root of both the ball and
+   its fan. It used to be declared twice, on a `.drg-well` and a `.fan-well`,
+   because the two were siblings inside the contact section. They are nested
+   now — the fan orbits the ball — so one root covers both and the two can no
+   longer disagree about what "ink" means.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ball-overlay {
+  --ink: var(--foreground);
+  /* Not a token here: this project has one foreground, and "a bit quieter"
+     is expressed as a mix against the ground rather than as a second
+     palette entry that would then need its own dark value. */
+  --ink-2: color-mix(in oklab, var(--foreground) 72%, var(--background));
+  --ink-4: color-mix(in oklab, var(--foreground) 45%, var(--background));
+  --ink-rgb: 9 9 11;
+  --shadow-rgb: 9 9 11;
+
+  --font-mono: var(--font-geist-mono);
+
+  /* the raised surface, as a raised surface. 60% of --card over whatever is
+     behind it, so the frost underneath is what you see through it. */
+  --pane: color-mix(in oklab, var(--card) 60%, transparent);
+  --pane-edge: color-mix(in oklab, var(--foreground) 12%, transparent);
+
+  /* ── WHY THESE TWO ARE INK AND NOT A LIGHT SLAB ───────────
+     Upstream is emphatic that the ball is `--fill-slab` and not
+     `--fill-on`, and gives the reason: a near-black disc vanished on a
+     near-black card. Measured on this page before changing it, the slab
+     version is worse, because there is no card to vanish INTO.
+
+     `--card` here is `oklch(1 0 0)` and the contact section sits
+     directly on `--background`, which is `#ffffff`. So the raised grey
+     disc lands on white at:
+
+         light  #ffffff on #ffffff  ->  1.00 : 1
+         dark   #171717 on #09090b  ->  1.11 : 1
+
+     1.00 is not a subtle disc. It is no disc: the ball did not render,
+     and what was left on the page was a pair of eyes floating in the
+     contact section with nothing behind them. The fan's core was the
+     same story — a white 56px circle on a white page, legible only
+     because its icon was dark.
+
+     Upstream got 1.06:1 because the bench put these components on a
+     GREY card, so a white disc had a ground to be 1.06:1 against. The
+     reasoning was sound and the value was never portable to a page
+     without that ground.
+
+     So the pair is inverted to ink-and-ground, which is what upstream's
+     own `.logo-test` treatment already does for the hexagon
+     (`--ink` body, `--bg` eyes) and which this map is following. It
+     cannot fall into the trap that warning describes, because the
+     reason it exists is that the ink was a FIXED near-black. Here it
+     is `--foreground`, which is near-black in the light theme and near-
+     white in the dark one, so the disc is always the opposite of the
+     page it is on: about 19:1 either way.
+
+     The cost is that the ball is a dark disc rather than a pale one,
+     which does not sit as quietly on a white resume. It is the only
+     version of this that is visible at all. */
+  --fill-slab: var(--foreground);
+  --fill-on: var(--background);
+  --on-ink: var(--primary-foreground);
+
+  --g-blur: 2px;
+  --g-sat: 150%;
+  --g-bright: 100%;
+  --g-edge-hi: 0.5;
+  --g-edge-lo: 0.06;
+  --g-edge-far: 0.18;
+  --g-spec: 0.55;
+  --g-lift: 0.09;
+  --g-shadow:
+    inset 0 1px 0 rgb(255 255 255 / var(--g-spec)),
+    0 10px 40px rgb(var(--shadow-rgb) / var(--g-lift));
+}
+
+/* ══ The overlay ═══════════════════════════════════════════
+   A fixed layer over the whole document, so the ball can be
+   dragged anywhere on screen rather than inside a well.
+
+   `pointer-events: none` on the layer is the important line. The
+   overlay is a full-viewport rectangle sitting above every
+   section, and without this it would swallow every click, scroll
+   and text selection on the page. Only the ball and the fan opt
+   back in. That is also why the layer needs no `z-index` above
+   the content — it is transparent to the pointer, so what it
+   covers visually is only what the ball actually paints.
+
+   `z-40` rather than something higher: the sticky header is
+   `z-50` and the preloader is `z-100`. The ball stays under both
+   — under the preloader so it is hidden while the page is
+   loading, and under the header so it can never be dragged up
+   behind the nav and appear to have vanished. */
+.ball-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  font-family: var(--font-mono);
+}
+
+.ball-overlay .ball-fan,
+.ball-overlay .drg-ball {
+  pointer-events: auto;
+}
+
+/* ── the ball ───────────────────────────────────────────────
+   `position: absolute` at the origin, and every position it ever
+   takes is a transform from there. Framer's numeric drag
+   constraints are offsets from an element's layout origin, so
+   having that origin be the overlay's top-left corner is what
+   makes the limits in contact-ball.tsx readable as centre-line
+   limits. */
+.drg-ball {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  border-radius: 999px;
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
+}
+
+.drg-ball:active {
+  cursor: grabbing;
+}
+
+/* ── the disc ──────────────────────────────────────────────
+   Its own element, painted rather than filtered. It carries the
+   fill and it is the thing the velocity stretch scales, so the
+   face inside it deforms with the body instead of staying
+   circular inside an egg.
+
+   --fill-slab comes from the token map above and is restated
+   nowhere else on purpose: the ball's colour is one decision and
+   the component and the stylesheet should not be able to
+   disagree about it. */
+.drg-squash {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fill-slab, var(--foreground));
+}
+
+/* ── the face ────────────────────────────────────────────────
+   The tracker's own frame is 200px so a wall of them never
+   rescales the largest ball the size knob allows. Inside the
+   ball that frame has to BE the ball.
+
+   `pointer-events: none` is not a nicety. The face fills the
+   drag target, and an SVG intercepting the pointer means the
+   gesture starts on the eyes rather than on the ball; the events
+   still bubble so the drag would survive, but not relying on
+   that is cheaper than finding out. */
+.drg-ball .eyt {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ══ Eye tracker ═══════════════════════════════════════════
+   See eye-tracker.tsx. The frame holds the largest ball the
+   Size knob allows, so the wall never rescales it. */
+.eyt {
+  width: 200px;
+  height: 200px;
+  display: grid;
+  place-items: center;
+}
+
+.eyt-ball {
+  width: var(--eyt-size, 100px);
+  height: var(--eyt-size, 100px);
+  overflow: visible;
+}
+
+/* the ball is the Fill's own slab and the eyes its ink: white
+   with dark eyes on a light fill, near-black with light eyes on
+   a dark one. Both are written on the component's root as inline
+   custom properties, because the fill pair is chosen per
+   instance — a standalone tracker takes the card tokens, and the
+   same tracker inside the draggable ball takes `bare` so the
+   liquid supplies the disc and only the eyes are painted. */
+.eyt-body {
+  fill: var(--fill-slab, #ffffff);
+}
+
+.eyt-eye {
+  fill: var(--fill-on, #0b0b0d);
+}
+
+/* ── glass navigation ──────────────────────────────────────
+   Same recipe as .gcard: 60% white, 2px frost, refraction,
+   lit inner edge. Shapes differ, the material does not. */
+
+/* The bare pane. A card with a title in one corner and a chip
+   in the other is a house style, not a requirement, and most
+   things do not need either.
+
+   Upstream this rule is shared with `.gnav` and `.gdock` and
+   switched between glass and a flat fill by a `data-surface`
+   attribute on an ancestor. Neither the sharing nor the switch
+   survives the trip: those two have no consumer here, and there
+   is no control on this site to gate. So the one surface that
+   exists is glass, unconditionally. */
+.gpane {
+  position: relative;
+  background: var(--pane);
+  -webkit-backdrop-filter: blur(var(--g-blur, 2px)) saturate(var(--g-sat, 150%))
+    brightness(var(--g-bright, 100%));
+  backdrop-filter: blur(var(--g-blur, 2px)) saturate(var(--g-sat, 150%))
+    brightness(var(--g-bright, 100%));
+  isolation: isolate;
+  color: var(--ink);
+}
+
+.gpane::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 0 solid transparent;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ══ the rim ═════════════════════════════════════════════════
+   Every glass surface already drew a 1px ring in one flat
+   colour. A flat rim is the single clearest tell that a thing
+   is a rectangle with a border rather than a pane with
+   thickness: real edges are lit unevenly, and evenly lit ones
+   read as ink.
+
+   So the ring becomes a gradient — bright at the corner
+   facing the light, almost nothing along the sides that run
+   edge-on to it, and a second weaker catch at the far corner
+   where the light has come through the pane and out again.
+
+   Painting a gradient in a border needs the border box filled
+   and the padding box punched out of it, which is what the
+   two masks do: one covers the whole element, one covers only
+   the inside, and compositing them apart leaves the rim. It
+   is the only way to get a gradient into a border without a
+   second element to draw it on.
+
+   The hairline is not load-bearing. A pane is a fill against a
+   different fill and reads on its own; the ring was there to
+   sharpen an edge that was already there. It is drawn on the
+   element itself rather than behind a `data-stroke` control,
+   because there is no control to put it behind. */
+.gpane::before {
+  border-color: transparent;
+  background: linear-gradient(
+    142deg,
+    rgb(255 255 255 / var(--g-edge-hi, 0)) 0%,
+    rgb(255 255 255 / var(--g-edge-lo, 0)) 26%,
+    rgb(255 255 255 / var(--g-edge-lo, 0)) 62%,
+    rgb(255 255 255 / var(--g-edge-far, 0)) 100%
+  ) border-box;
+  -webkit-mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* ── WHY THE FAN OPTIONS CARRY THEIR OWN HAIRLINE ───────────
+   The rim above is lit with white at every stop, because upstream's
+   bench is dark and a white catch-light is the whole trick there.
+   On this project's light theme that makes it nothing at all: a
+   white gradient around a 60%-white pane, on a white page. The
+   options had a visible icon and no visible button.
+
+   So the options take a real border in `--pane-edge` — a mix
+   against `--foreground`, so it darkens on white and lightens on
+   near-black and needs no second rule either. The lit rim stays on
+   top of it, because in the dark theme that is still the mark doing
+   the work and the hairline is only the thing that makes the light
+   theme legible. Two edges, each carrying the theme where the other
+   cannot.
+
+   This is the one place the glass recipe is asked to work on a
+   ground it was not drawn for. It is worth saying plainly: the pane
+   effect here is a wash, not a refraction, because there is nothing
+   behind these buttons to refract. What survives is the material's
+   outline and its thickness, which is most of what reads. */
+.fan-opt {
+  border: 1px solid var(--pane-edge);
+}
+
+/* ── thickness ───────────────────────────────────────────────
+   Three marks, and between them they are the difference
+   between a pane and a wash.
+
+   The lit line along the top is where light enters the edge of
+   a real sheet. The ring is the sheet's own thickness seen
+   from straight on. The shadow underneath says the pane is
+   ABOVE the page rather than painted onto it — which is the
+   one thing a backdrop-filter alone can never say, because a
+   filter has no depth. */
+.gpane {
+  box-shadow: var(
+    --g-shadow,
+    inset 0 1px 0 rgb(255 255 255 / var(--g-spec, 0)),
+    0 10px 40px rgb(var(--shadow-rgb) / var(--g-lift, 0))
+  );
+}
+
+/* ══ 2 · radial ════════════════════════════════════════════ */
+/* The fan's root is a zero-size point, and it is positioned by the
+   ball's own motion values — see `ContactBall`. There is no well
+   around it and no box to fall out of: the ball is what the fan
+   orbits, so the fan is wherever the ball is. */
+.ball-fan {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+/* the arc springs from the ball's own centre, which is this
+   element's origin — so the two cannot drift apart for a frame
+   even if the ball is mid-drag */
+.fan-arc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+.fan-opt {
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 420ms cubic-bezier(0.24, 1.34, 0.38, 1),
+    opacity 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.fan-arc[data-open="true"] .fan-opt {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* the one the drag is pointing at */
+.fan-opt[data-live="true"] {
+  box-shadow: 0 0 0 2px var(--ink);
+  z-index: 2;
+}
+
+.fan-opt:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.fan-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  font-family: var(--font-mono);
+  /* 10px, not upstream's 8. The caption is the only text on the fan and it
+     names the channel, so it is not decoration that can be as small as the
+     buttons allow — 8px mono caps is below the floor at which the shape of a
+     letter is reliably readable, and the whole reason it exists is that the
+     icons alone do not say which channel is which. The tracking is trimmed
+     from 0.06em to 0.05em to buy back most of the extra width. */
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-style: normal;
+  color: var(--ink-4);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.fan-opt:hover .fan-label,
+.fan-opt:focus-visible .fan-label,
+.fan-opt[data-live="true"] .fan-label {
+  opacity: 1;
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fan-opt {
+    transition-duration: 1ms;
   }
 }

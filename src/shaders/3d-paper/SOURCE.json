@@ -19,17 +19,17 @@
       "path": "src/shaders/3d-paper/sources/3d-paper-estrel.html",
       "language": "html",
       "role": "variant-source",
-      "bytes": 630880,
+      "bytes": 630867,
       "lines": 548,
-      "sha256": "7ac6bbf8925bb9920860f0fa48b595912c5b193341493a3239637d55a3745fe3"
+      "sha256": "c904c89fa741b9858c26700d39b80b04f79608261a05e99a4cc8875109fd392d"
     },
     {
       "path": "src/shaders/3d-paper/sources/3d-paper-wiiz.html",
       "language": "html",
       "role": "variant-source",
-      "bytes": 630918,
+      "bytes": 630905,
       "lines": 548,
-      "sha256": "cf57ff5f98db1c792793a799fc47b4a631b4c6cd723523b374dfb36f755ab2d2"
+      "sha256": "4536c072ffa5dd8f09feb50bcc1730bd028324aecd704f35adf3c13dde65b623"
     },
     {
       "path": "src/shaders/3d-paper/sources/3d-paper-site-of-the-year.html",

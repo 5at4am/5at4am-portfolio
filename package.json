@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:site": "next build && node scripts/build-site.mjs",
     "start": "next start",
     "lint": "eslint",
     "verify:shaders": "node scripts/verify-shader-sources.mjs"

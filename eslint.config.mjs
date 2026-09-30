@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // `site/` is the static export committed for the Pages deploy (see
+    // scripts/build-site.mjs). It is generated, minified, third-party code —
+    // linting it reports thousands of problems in code we did not write.
+    "site/**",
     // Vendored third-party agent skills, not project source.
     ".agents/**",
   ]),

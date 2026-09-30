@@ -1,9 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Deployed as a static export on GitHub Pages (5at4am.github.io serves the
-  // root of this export). The sketchbook CORS rule below cannot exist on Pages,
-  // so the iframe fonts rely on same-origin serving instead of a header rule.
+  // Deployed as a static export on GitHub Pages: the 5at4am/5at4am.github.io
+  // repo serves the root of `site/`, which `npm run build:site` fills from the
+  // `out/` directory this produces.
+  //
+  // There is deliberately no `headers()` rule here. Headers are an unsupported
+  // feature under `output: "export"` and are silently dropped from the export,
+  // so a CORS rule for the sandboxed sketchbook iframe would only ever work in
+  // `next dev`. The iframe is served same-origin in the export instead.
   output: "export",
   turbopack: {
     rules: {
@@ -25,6 +30,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  };
+};
 
 export default nextConfig;

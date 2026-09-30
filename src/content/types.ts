@@ -14,6 +14,14 @@ export type SocialLink = {
   /** `false` for `mailto:` links, `true` for anything that leaves the site. */
   external: boolean;
   icon: SocialIconKey;
+  /**
+   * The channel's own name, for places that cannot fit `label`. `label` is a
+   * full address because it has to be readable and copyable on its own; a
+   * 48px menu button caption is not that place, and truncating the address
+   * into it would produce "satraj6465…". Optional so a new channel still
+   * compiles without one.
+   */
+  short?: string;
 };
 
 export type NavSection = {

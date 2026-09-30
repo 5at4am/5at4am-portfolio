@@ -13,6 +13,12 @@ export type TextRollProps = {
   className?: string;
   /** Stagger outward from the middle character instead of left to right. */
   center?: boolean;
+  /**
+   * Optional per-character class, so a wordmark can give some letters a
+   * distinct treatment (e.g. the leet digits in `5at4am`). Applied to both
+   * rolling layers, which stay metrical twins because the font is monospace.
+   */
+  charClass?: (char: string, index: number) => string | undefined;
 };
 
 /**
@@ -33,7 +39,7 @@ export type TextRollProps = {
  *   <TextRoll>5at4am</TextRoll>
  * </a>
  */
-export function TextRoll({ children, className, center = false }: TextRollProps) {
+export function TextRoll({ children, className, center = false, charClass }: TextRollProps) {
   // `useReducedMotion()` can only read the media query in the browser, so the
   // server has no answer. Taking the branch immediately made the first client
   // render emit a single text node where the server had emitted one span per
@@ -64,7 +70,7 @@ export function TextRoll({ children, className, center = false }: TextRollProps)
             key={`base-${index}`}
             variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
             transition={{ ease: "easeInOut", delay: delayFor(index) }}
-            className="inline-block"
+            className={cn("inline-block", charClass?.(letter, index))}
           >
             {letter}
           </motion.span>
@@ -76,7 +82,7 @@ export function TextRoll({ children, className, center = false }: TextRollProps)
             key={`roll-${index}`}
             variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
             transition={{ ease: "easeInOut", delay: delayFor(index) }}
-            className="inline-block"
+            className={cn("inline-block", charClass?.(letter, index))}
           >
             {letter}
           </motion.span>

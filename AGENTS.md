@@ -1,3 +1,10 @@
+# Project memory
+
+Start every working session by reading `memory.md` in this repository. It holds everything about the project:
+stack, architecture, conventions, design rules, current state, and known issues. Treat it as the source of
+truth and consult it instead of re-exploring the codebase. Update it whenever your work changes the project
+materially (new components, changed conventions, new known issues, shifted state).
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

@@ -207,6 +207,14 @@ export type ThemeToggleButton2Props = {
   onToggle?: () => void;
 } & Omit<ComponentProps<"button">, "className" | "onClick" | "type">;
 
+/**
+ * Shared spring for the sun/moon morph. A short, low-over-shoot spring reads
+ * more tactile than the upstream ease-in-out: the moon settles with a tiny
+ * momentum instead of tweening flat, and the volume change on the rays reads
+ * as one gesture.
+ */
+const MORPH_SPRING = { type: "spring", stiffness: 260, damping: 22 } as const;
+
 export const ThemeToggleButton2 = ({
   className = "",
   isDark: isDarkProp,
@@ -243,14 +251,14 @@ export const ThemeToggleButton2 = ({
         <clipPath id="skiper-btn-2">
           <motion.path
             animate={{ y: isDark ? 10 : 0, x: isDark ? -12 : 0 }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+            transition={MORPH_SPRING}
             d="M0-5h30a1 1 0 0 0 9 13v24H0Z"
           />
         </clipPath>
         <g clipPath="url(#skiper-btn-2)">
           <motion.circle
             animate={{ r: isDark ? 10 : 8 }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+            transition={MORPH_SPRING}
             cx="16"
             cy="16"
             // Motion writes `r` straight to the attribute, and with no starting
@@ -264,7 +272,7 @@ export const ThemeToggleButton2 = ({
               scale: isDark ? 0.5 : 1,
               opacity: isDark ? 0 : 1,
             }}
-            transition={{ ease: "easeInOut", duration: 0.35 }}
+            transition={MORPH_SPRING}
             stroke="currentColor"
             strokeWidth="1.5"
           >

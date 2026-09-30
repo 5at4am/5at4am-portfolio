@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python (the vendored skills under .agents/ ship scripts that get run)
+__pycache__/
+*.py[cod]
+
+# eslint report artifacts (absolute local paths, regenerated per run)
+lint.json

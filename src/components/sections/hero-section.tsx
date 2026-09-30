@@ -21,7 +21,14 @@ export function HeroSection() {
       </div>
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center px-4 py-24 text-center sm:px-6 sm:py-32">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        {/* `id` is not decoration: the contact ball is a fixed overlay that
+            parks itself directly above this line on load, and this is how it
+            finds it. An id rather than a text match, because the string is
+            content and will be edited. */}
+        <p
+          id="hero-role"
+          className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground"
+        >
           {SITE.role}
         </p>
 

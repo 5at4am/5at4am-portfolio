@@ -1,7 +1,7 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { TextRoll } from "@/components/ui/text-roll/text-roll";
 import { NAV_SECTIONS } from "@/content/navigation";
@@ -15,6 +15,8 @@ const linkVariants = cva("block px-3 text-sm font-medium transition-colors", {
       underline: "relative py-2",
       /** Mobile stack, paired with the left rule. */
       bordered: "border-l-2 border-transparent py-2.5",
+      /** Inside the top notch: always light, since the notch stays dark. */
+      notch: "relative py-2",
     },
     active: {
       true: "text-foreground",
@@ -24,6 +26,12 @@ const linkVariants = cva("block px-3 text-sm font-medium transition-colors", {
   },
   compoundVariants: [
     { variant: "bordered", active: true, class: "border-foreground" },
+    { variant: "notch", active: true, class: "text-zinc-100" },
+    {
+      variant: "notch",
+      active: false,
+      class: "text-zinc-100/70 hover:text-zinc-100 focus-visible:text-zinc-100",
+    },
   ],
   defaultVariants: { variant: "underline", active: false },
 });
@@ -32,9 +40,10 @@ export type NavSectionLinksProps = {
   /**
    * - `underline` — desktop row with a shared-layout active indicator that
    *   slides between items.
+   * - `notch` — same row but tinted for the dark top notch surface.
    * - `bordered` — mobile stack with a left rule marking the active item.
    */
-  variant: "underline" | "bordered";
+  variant: "underline" | "bordered" | "notch";
   activeId: string;
   /** Called after a section is chosen, so the mobile panel can close itself. */
   onNavigate?: () => void;
@@ -49,13 +58,15 @@ function NavSectionLink({
 }: {
   section: NavSection;
   isActive: boolean;
-  variant: "underline" | "bordered";
+  variant: "underline" | "bordered" | "notch";
   onNavigate?: () => void;
 }) {
-  const showUnderline = isActive && variant === "underline";
+  const shouldReduceMotion = useReducedMotion();
+  const showUnderline = isActive && (variant === "underline" || variant === "notch");
+  const underlineClass = variant === "notch" ? "bg-zinc-100" : "bg-foreground";
 
   return (
-    <li>
+    <li className="overflow-hidden">
       <motion.a
         href={`#${section.id}`}
         initial="initial"
@@ -63,7 +74,7 @@ function NavSectionLink({
         whileFocus="hovered"
         onClick={onNavigate}
         aria-current={isActive ? "location" : undefined}
-        className={linkVariants({ variant, active: isActive })}
+        className={cn(linkVariants({ variant, active: isActive }))}
       >
         {/* TextRoll hides its own copy from assistive tech, so the label is
             provided here as real text. */}
@@ -74,9 +85,22 @@ function NavSectionLink({
 
         {showUnderline ? (
           <motion.span
-            layoutId="nav-active-underline"
-            className="absolute inset-x-2 -bottom-px h-px bg-foreground"
-            transition={{ type: "spring", stiffness: 400, damping: 34 }}
+            layoutId={shouldReduceMotion ? undefined : "nav-active-underline"}
+            className={cn(
+              "pointer-events-none absolute inset-x-2 -bottom-px h-px",
+              underlineClass
+            )}
+            transition={
+              shouldReduceMotion
+                ? { layout: { duration: 0 } }
+                : {
+                    layout: {
+                      type: "tween",
+                      duration: 0.35,
+                      ease: [0.33, 1, 0.68, 1],
+                    },
+                  }
+            }
           />
         ) : null}
       </motion.a>
@@ -86,8 +110,9 @@ function NavSectionLink({
 
 /**
  * Anchor links to every section on the home page, derived from
- * `NAV_SECTIONS`. Adding a section to that list wires it into both the desktop
- * row and the mobile panel with no further changes here.
+ * `NAV_SECTIONS`. Adding a section to that list wires it into the mobile panel
+ * with no further changes here. Desktop navigation uses the magnification dock
+ * in the site header instead.
  */
 export function NavSectionLinks({
   variant,
@@ -98,15 +123,17 @@ export function NavSectionLinks({
   return (
     <ul
       className={cn(
-        variant === "underline" ? "hidden items-center md:flex" : "flex flex-col",
-        className
+        variant === "bordered"
+          ? "flex flex-col"
+          : "hidden items-center md:flex",
+        className,
       )}
     >
       {NAV_SECTIONS.map((section) => (
         <NavSectionLink
           key={section.id}
           section={section}
-          isActive={activeId === section.id}
+          isActive={section.id === activeId}
           variant={variant}
           onNavigate={onNavigate}
         />
