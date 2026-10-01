@@ -418,6 +418,25 @@ static-export HTML — a footer that only mounts in an effect is a footer crawle
 
 - The live URL is **https://5at4am.me**. Served by the **`5at4am/5at4am.github.io`** user-site repo, *not* this
   one. `.github/workflows/publish-site.yml` mirrors `site/` into it on every push touching `site/**`.
+
+- **THREE repos, do not confuse them.** Confirmed by `git ls-remote` on 2026-10-01:
+  | Repo | Branch | What it is |
+  |---|---|---|
+  | `5at4am.github.io` | `main` | **The live site.** Built output only, no source. |
+  | `5at4am-portfolio` | `pages-site` | **This app's source.** Local `main` tracks it. |
+  | `5at4am-portfolio` | `main` | A *different, older* app, live at `5at4am.vercel.app`. |
+  | `5at4am-portfolio` | `next` | Dead at `60b1c71`, predates the curtain footer. |
+  - `5at4am/5at4am.github.io` came from the **GitHub Student Pack** (that is where the free `*.io` domain came
+    from). Its `main` is unrelated history from this repo — it cannot be fast-forwarded against.
+  - The two apps share the GitHub account but **not an ancestor commit**. `5at4am-portfolio` `main` has no
+    `27630bf`, and vice versa. They are separate projects that happen to share a repo name, not two versions of
+    one site. `git push` to this repo's `main` will be rejected as non-fast-forward, and **must never be forced**:
+    it would destroy the source of a live Vercel deployment (sitemap, JSON-LD, `projects/[slug]` pages).
+  - Local `main` was repointed to track `portfolio/pages-site`, so a plain `git push` is now correct and safe.
+    Never `git push` to `portfolio main` from here.
+  - The Pages repo is filled by **replacing its whole contents** with `site/` (same wholesale-swap the workflow
+    does). A plain `git push site/` style merge would leave deleted routes live forever. Verified byte-identical
+    by tree hash: local `HEAD:site` == `pages-site:site` == `5at4am.github.io` HEAD == `9a7a81a2`.
 - Apex DNS points at all four Pages IPs (`185.199.108/109/110/111.153`); `www.5at4am.me` is a CNAME to the
   apex, so both hostnames must keep working. Registrar is Namecheap (`dns*.registrar-servers.com`).
 - **The HTTPS cert gotcha, recorded 2026-10-01 because it cost real confusion.** Sharing the link showed
