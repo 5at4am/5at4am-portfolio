@@ -37,29 +37,38 @@ import { RadialMenu } from "@/components/ui/radial-menu/radial-menu";
    content and will be edited, and a text query would silently
    start matching something else the day it did.
 
-   Three clearances decide the final number, which is why this is
-   not simply `rect.top - 56`:
+    Four clearances decide the final number, which is why this is
+    not simply `rect.top - 56`:
 
-     GAP     air between the role line and the ball. That line is
-             12px of tracked-out mono caps; 44px of nothing above
-             it puts the ball in its own band instead of
-             crowding the words it is answering.
+      GAP     air between the role line and the ball. That line is
+              12px of tracked-out mono caps; 44px of nothing above
+              it puts the ball in its own band instead of
+              crowding the words it is answering.
 
-     MARGIN how close to the edge of the screen the ball may be
-             parked. Closed, just enough that the ball never
-             touches the edge. Open, it grows to cover the whole
-             fan, so the fan cannot open off-screen — that is what
-             lets "drag it anywhere" and "the fan always fits"
-             both be true at once.
+      MARGIN how close to the edge of the screen the ball may be
+              parked. Closed, just enough that the ball never
+              touches the edge. Open, it grows to cover the whole
+              fan, so the fan cannot open off-screen — that is what
+              lets "drag it anywhere" and "the fan always fits"
+              both be true at once.
 
-     HEADER the sticky nav is 48px tall and sits at z-50, above
-             this overlay, so a ball dragged under it would vanish
-             behind it. MARGIN is floored above that. */
+      TOP    the top edge does not use MARGIN. The sticky nav is
+              48px tall and sits at z-50, above this overlay, so
+              a ball dragged up under it would not be "close to
+              the edge" so much as simply hidden. It is the one
+              edge where the two answers differ, which is why it
+              is a separate constant rather than a larger MARGIN
+              that would also push the ball 36px further from the
+              left and right edges than it needs to be. */
 const GAP = 44;
 const HALF = 28;
-/* the 48px header, plus a ball's worth of air, so the ball can
-   never be parked behind the nav */
+/* just enough that the ball never touches the edge of the screen */
 const MARGIN = 40;
+/* the sticky nav is 48px tall and sits at z-50, above this overlay, so a
+   ball parked higher than this would slide behind it and look like it had
+   been swallowed. The ball's CENTRE has to clear the header, which is the
+   header plus half a ball — not just the header. */
+const TOP = 48 + HALF;
 const FAN_REACH = 68;
 const OPT = 48;
 const CAPTION = 19;
@@ -108,35 +117,51 @@ export function ContactBall() {
       if (!box.w) return;
       const m = open ? OPEN_MARGIN : MARGIN;
       x.set(clamp(cx, m, box.w - m) - HALF);
-      y.set(clamp(cy, m, box.h - m) - HALF);
+      /* the top is clamped separately, and from the header rather than from
+         `m`. The nav is above the overlay, so it is the one edge where
+         "close to the screen" and "visible at all" are not the same thing. */
+      y.set(clamp(cy, Math.max(TOP, m), box.h - m) - HALF);
     },
     [box.h, box.w, open, x, y],
   );
 
-  /* ── park it above the role line, once ───────────────────
-     A frame's wait, because on the first paint the hero has not
-     been laid out and its rect is not the one it will settle
-     into. Mount-only on purpose: re-running this on `open` would
-     yank the ball back under the hero every time the fan
-     closed. */
+  /* ── measure the viewport ──────────────────────────────── */
   useEffect(() => {
     const read = () => setBox({ w: window.innerWidth, h: window.innerHeight });
     read();
-
-    const role = document.getElementById("hero-role");
-    const r = role?.getBoundingClientRect();
-    const id = requestAnimationFrame(() => {
-      read();
-      place(r ? r.left + r.width / 2 : window.innerWidth / 2, r ? r.top - GAP : MARGIN + HALF);
-    });
-
     window.addEventListener("resize", read);
-    return () => {
-      cancelAnimationFrame(id);
-      window.removeEventListener("resize", read);
-    };
-    /* eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only */
+    return () => window.removeEventListener("resize", read);
   }, []);
+
+  /* ── park it above the role line, once ───────────────────
+     This used to live in the same mount-only effect as the
+     measurement, which is why it never ran. `place` closes over
+     `box`, and on mount `box.w` is still 0, so the very first call
+     hit its own `if (!box.w) return`. The ball was then pulled to
+     the top-left corner by the re-clamp effect below, which is a
+     clamp doing exactly what it was told.
+
+     So the park waits for the box, and a frame is still taken
+     first: on the first paint the hero has not been laid out and
+     its rect is not the one it will settle into.
+
+     Guarded by a ref rather than by the dependency list, because
+     "park above the hero" is a first-run act and not an ongoing
+     one — re-running it on `open` would yank the ball back under
+     the hero every time the fan closed. */
+  const parked = useRef(false);
+  useEffect(() => {
+    if (!box.w || parked.current) return;
+    const id = requestAnimationFrame(() => {
+      const r = document.getElementById("hero-role")?.getBoundingClientRect();
+      place(
+        r ? r.left + r.width / 2 : window.innerWidth / 2,
+        r ? r.top - GAP : TOP,
+      );
+      parked.current = true;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [box.w, box.h, place]);
 
   /* ── re-clamp when the rules change ──────────────────────
      Opening the fan shrinks the area the ball may occupy, and a
@@ -144,9 +169,12 @@ export function ContactBall() {
      ball is already placed, and neither can be left to the drag:
      the drag only clamps while it is running, so a ball left
      against an edge and then opened would sit half off-screen
-     with its fan. */
+     with its fan.
+
+     Skipped until the park has happened, so it cannot grab the
+     ball out of the corner before the park has placed it. */
   useEffect(() => {
-    if (!box.w) return;
+    if (!box.w || !parked.current) return;
     place(x.get() + HALF, y.get() + HALF);
   }, [box.w, box.h, open, place, x, y]);
 
@@ -193,11 +221,12 @@ export function ContactBall() {
            element's layout origin, and the ball's origin is the
            overlay's top-left. These are the centre-line limits
            with half a ball taken off, because the transform moves
-           the top-left, not the centre. */
+           the top-left, not the centre. `top` comes from the
+           header rather than from `m`, to match `place`. */
         constraints={{
           left: m - HALF,
           right: box.w - m - HALF,
-          top: m - HALF,
+          top: Math.max(TOP, m) - HALF,
           bottom: box.h - m - HALF,
         }}
         onActivate={() => setOpen((was) => !was)}

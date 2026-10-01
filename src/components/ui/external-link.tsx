@@ -11,6 +11,15 @@ export type ExternalLinkProps = {
   /** Rendered before the label, for the icon-led contact list. */
   icon?: IconComponent;
   className?: string;
+  /**
+   * `onDark` is for links sitting on a dark-glass surface (the project stack
+   * cards). It exists because `text-foreground` is a near-black ink in the light
+   * theme, and a descendant override from the parent cannot beat it: the class
+   * lands on the `<a>` itself, so `[&_a]:text-zinc-100` on an ancestor loses the
+   * specificity fight and the link renders dark ink on a dark card. The tone has
+   * to be stated where the class is applied.
+   */
+  tone?: "default" | "onDark";
 };
 
 /**
@@ -35,6 +44,7 @@ export function ExternalLink({
   children,
   icon: Icon,
   className,
+  tone = "default",
 }: ExternalLinkProps) {
   const isExternal = href.startsWith("http");
 
@@ -44,18 +54,25 @@ export function ExternalLink({
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       className={cn(
-        "group relative inline-flex items-center rounded-sm text-foreground",
+        "group relative inline-flex items-center rounded-sm",
+        tone === "onDark" ? "text-zinc-100" : "text-foreground",
         Icon && "gap-2.5",
         "before:pointer-events-none before:absolute before:left-0 before:top-[1.5em] before:h-[0.05em] before:w-full before:bg-current before:content-['']",
         "before:origin-right before:scale-x-0 before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:motion-reduce:transition-none",
         "hover:before:origin-left hover:before:scale-x-100",
         "focus-visible:before:origin-left focus-visible:before:scale-x-100",
-        "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground",
+        "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
         className
       )}
     >
       {Icon ? (
-        <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        <Icon
+          aria-hidden="true"
+          className={cn(
+            "size-4 shrink-0",
+            tone === "onDark" ? "text-zinc-300" : "text-muted-foreground"
+          )}
+        />
       ) : null}
       {children}
       <svg

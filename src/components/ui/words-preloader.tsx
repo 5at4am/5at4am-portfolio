@@ -137,11 +137,13 @@ export type WordsPreloaderProps = {
  * escape hatches cover the animated path: the `Skip` button, `Escape`, and a
  * watchdog timer armed with enough slack to outlast the whole run.
  *
- * **Mounted once.** It belongs in the root layout, which the App Router keeps
- * alive across client-side navigations, so `/` -> `/profile` never replays it.
+ * **Home page only.** Mounted in `src/app/page.tsx`, not the root layout: the
+ * intro is a greeting for one page, and `/paper` or a 404 should not pay for it.
+ * Being in the page subtree means a client-side navigation back to `/` replays
+ * the intro - the accepted trade for not charging it to every route.
  *
  * @example
- * <WordsPreloader />                                  // in the root layout
+ * <WordsPreloader />                                  // in src/app/page.tsx
  * <WordsPreloader words={["A", "B"]} wordInterval={400} />
  */
 export function WordsPreloader({

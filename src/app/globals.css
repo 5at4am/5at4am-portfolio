@@ -224,6 +224,50 @@
   );
 }
 
+/* Skills: the one continuous animation in the section. A hairline of ink sweeps
+   across the AI category's rule, so the eye is pulled to the group that leads
+   without anything having to move that a reader is trying to read.
+
+   Paused during a view transition for the same reason the WebGL hero is: the
+   transition shows a still image of the page, so anything still drawing
+   underneath it ends the transition on a different frame from the one that was
+   captured, and visibly jumps. */
+.skills-sheen {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--foreground) 35%, transparent) 45%,
+    var(--foreground) 50%,
+    color-mix(in oklab, var(--foreground) 35%, transparent) 55%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  background-position: 130% 0;
+  animation: skills-sheen 7s ease-in-out infinite;
+}
+
+@keyframes skills-sheen {
+  0%,
+  100% {
+    background-position: 130% 0;
+  }
+  50% {
+    background-position: -30% 0;
+  }
+}
+
+html:active-view-transition .skills-sheen {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skills-sheen {
+    animation: none;
+    background-position: 50% 0;
+  }
+}
+
 @layer base {
   /* Theme-switch transitions.
      Scoped to the elements that actually carry a themed surface, border, or
@@ -260,6 +304,26 @@
     transition-duration: 200ms;
     transition-timing-function: ease-out;
   }
+}
+
+/* Theme switches run inside a `document.startViewTransition` (skiper26's
+   circle-blur wipe). The tween above must NOT run there: the browser captures
+   the "after" snapshot on the frame the class flips, which is the first frame
+   of the 200ms tween, so the snapshot holds the OLD colours. The wipe then
+   reveals the old theme and, when the transition tears down, the live DOM snaps
+   to the new one. That end-snap is the flash.
+
+   `:active-view-transition` is live for exactly the duration of the transition,
+   capture phases included, so this needs no JS, no class, and no timer to keep
+   in step with the animation.
+
+   Only the colour properties are zeroed. `transform` and `opacity` keep
+   transitioning, so the Around button's icon morph still plays. */
+html:active-view-transition *,
+html:active-view-transition *::before,
+html:active-view-transition *::after {
+  transition-property: color, background-color, border-color, fill, stroke !important;
+  transition-duration: 0s !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -381,15 +445,27 @@ inverts all of them at once, which is a better outcome than carrying two
    the content — it is transparent to the pointer, so what it
    covers visually is only what the ball actually paints.
 
-   `z-40` rather than something higher: the sticky header is
-   `z-50` and the preloader is `z-100`. The ball stays under both
-   — under the preloader so it is hidden while the page is
-   loading, and under the header so it can never be dragged up
-   behind the nav and appear to have vanished. */
+   `z-30` rather than something higher, and the number is a floor
+   that three layers sit above:
+
+     the preloader is `z-[100]`, so the ball is hidden while the
+     page is loading.
+
+     the notch is `z-50`, so the ball can never be dragged up
+     behind the nav and appear to have vanished.
+
+     the mobile menu sheet is `z-40`. It was level with the ball
+     before, and because the sheet is a later sibling it painted
+     over it — the ball sat on top of the open menu, covering
+     "About" and "Experience". The menu is chrome and wins; the
+     ball is page content and yields.
+
+   Page sections are unpositioned, so all of this still floats
+   above the document. */
 .ball-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 30;
   pointer-events: none;
   font-family: var(--font-mono);
 }
@@ -696,5 +772,192 @@ inverts all of them at once, which is a better outcome than carrying two
 @media (prefers-reduced-motion: reduce) {
   .fan-opt {
     transition-duration: 1ms;
+  }
+}
+
+/* -- Curtain footer -------------------------------------------
+   The footer is a fixed layer BEHIND the page. The page itself
+   (PageShell's <main>) is opaque and one layer above it, so the
+   footer is invisible for the whole scroll and is uncovered only
+   as the page slides up through the last viewport of travel.
+
+   `curtain-runway` is the extra height of scroll that makes that
+   possible. The page is translated up by exactly the runway's own
+   height, so the two always agree — measured in JS from the
+   element, never hardcoded, because `100svh` and `window.innerHeight`
+   disagree on mobile the moment the URL bar collapses.
+
+   The reduced-motion branch is CSS, not a JS branch, so the DOM is
+   identical in both modes and there is no hydration question: no
+   runway, and the footer drops back into normal flow as an ordinary
+   end-of-page block. It still reads as a footer, it just does not
+   perform. */
+.curtain-runway {
+  height: 100svh;
+  /* Nothing to interact with. It is scroll distance, not content. */
+  pointer-events: none;
+}
+
+.curtain-footer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  /* The whole point: the page slides off this, it does not push it.
+
+     `overflow-y: auto` is a guarantee, not a preference. This footer is a
+     fixed, viewport-height box, and its content does not fit a phone: measured
+     at 910px of content in a 664px viewport (iPhone 13) and 932px in 568px
+     (iPhone SE). With `hidden`, the overflow is simply gone — the doormat
+     links and the email line were clipped below the fold and could not be
+     scrolled to, so the widest internal link surface on the site was
+     unreachable on mobile. `auto` lets it scroll when it has to and does
+     nothing when it does not.
+
+     The footer is `position: fixed; inset: 0`, so its box is exactly one
+     viewport tall. It is also given `scrollbar-width: none`, because a second
+     scrollbar in the same gutter as the document's own reads as a rendering
+     fault: the footer is a fixed overlay, not a second document, and it is the
+     document's scrollbar that drives the curtain. The box still scrolls — a
+     touch drag or a wheel over it moves it — it just does not draw a track.
+
+     `overscroll-behavior-y: auto` is the fix for a trap that `contain` set
+     here. `contain` stops the internal scroll chaining in BOTH directions, and
+     at the bottom of the page the footer sits at its own top boundary with
+     `<main>` lifted clear above it, so an upward wheel over the footer was
+     swallowed: the footer would not scroll and the document would not either,
+     and the visitor was stuck at the end of the page. `auto` still scrolls the
+     footer itself first whenever it has room, and only hands the gesture to the
+     document at its boundary, which is what a scroll container is supposed to
+     do. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  /* `scrollbar-width` is the standard property and is all Firefox and current
+     Chrome need; the pseudo-element pair is the legacy WebKit/Blink path that
+     still answers to `::-webkit-scrollbar`. Both are set because a fix that
+     depends on one engine's support is not a fix. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.curtain-footer::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curtain-runway {
+    display: none;
+  }
+
+.curtain-footer {
+    position: static;
+    /* `overflow-x: clip`, not `overflow: visible`.
+
+       Reduced motion un-fixes the footer, so it stops being a viewport-sized
+       box and its content lays out in normal flow. The marquee inside it is a
+       `width: max-content` strip that measures 1593px in a 1407px column, and
+       while the footer was `position: fixed` it was clipped and invisible to
+       layout. Un-fixed, that overhang became document overflow and produced a
+       horizontal scrollbar across the whole page.
+
+       `clip` rather than `hidden` deliberately: `hidden` would turn the footer
+       into a scroll container on both axes, which is the scrollbar-in-a-fixed-
+       overlay problem all over again. `clip` hides the overflow without
+       establishing a scroll box, and — unlike `hidden` — it is allowed to
+       coexist with `overflow-y: visible`, so the footer's height still grows
+       with its content here. */
+    overflow-x: clip;
+    overflow-y: visible;
+    overscroll-behavior: auto;
+  }
+}
+
+/* -- the diagonal marquee --------------------------------------
+   Two identical tracks translated by exactly -50%, so the loop is
+   seamless: track B arrives exactly as track A leaves. `gap-0` on the
+   track matters for the same reason — any padding inside it would
+   show as a seam at the wrap.
+
+   The tilt is a static rotate on the container rather than a
+   diagonal keyframe, because a rotated repeating-linear-gradient
+   would have to be re-tiled at the skewed width and the seam returns. */
+.marquee {
+  --marquee-duration: 38s;
+  overflow: hidden;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0;
+  animation: marquee-slide var(--marquee-duration) linear infinite;
+}
+
+@keyframes marquee-slide {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Pausing on hover is the one bit of affordance that earns its keep:
+   the strip is long and moving, and a visitor checking whether it
+   is an image or an element needs it to hold still long enough to
+   find out. */
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ── the oversized wordmark ───────────────────────────────────
+   Outline everywhere, solid fill sweeping in from the left as the
+   curtain lifts.
+
+   ONE text node, and that is the whole trick. The obvious build is
+   two stacked copies — the element outlined, a pseudo-element
+   filled and clipped — but this element sets `line-height: 0.78`,
+   so its box is 187px while the glyphs actually span 312px. Two
+   copies then register against different line boxes and the fill
+   lands ~75px above the outline, which reads as a rendering fault
+   rather than as a design. Measured, not guessed.
+
+   `background-clip: text` puts the fill and the outline on the same
+   glyphs, so they cannot drift apart at any viewport, font size, or
+   line height. A solid gradient sized by `--word-fill` is the fill;
+   `-webkit-text-stroke` on a transparent `color` is the outline.
+   Both paint into the same shape.
+
+   `background-size` rather than a gradient stop, because a stop has
+   to be re-parsed on every frame the custom property changes, while
+   a size is one layout-independent value. */
+.curtain-word {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  line-height: 0.78;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--foreground) 22%, transparent);
+  background-image: linear-gradient(var(--foreground), var(--foreground));
+  background-repeat: no-repeat;
+  background-size: var(--word-fill, 0%) 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curtain-word {
+    /* No scrub to drive it, so settle at a legible part-fill rather
+       than an empty outline that reads as a broken image. */
+    --word-fill: 45%;
   }
 }

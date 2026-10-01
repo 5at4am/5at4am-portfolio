@@ -15,8 +15,22 @@ export function AchievementsSection({ variant }: { variant?: SectionVariant }) {
       <ul className="space-y-5">
         {AWARDS.map((award) => (
           <li key={award.title} className="border-l-2 border-border pl-4">
-            <p className="font-medium text-foreground">{award.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{award.org}</p>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <p className="font-medium text-foreground">{award.title}</p>
+              {award.date ? (
+                <p className="font-mono text-xs text-muted-foreground">
+                  {award.date}
+                </p>
+              ) : null}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {award.scope === "team" ? (
+                <span className="font-mono text-xs uppercase tracking-[0.14em]">
+                  Team award.{" "}
+                </span>
+              ) : null}
+              {award.org}
+            </p>
           </li>
         ))}
       </ul>

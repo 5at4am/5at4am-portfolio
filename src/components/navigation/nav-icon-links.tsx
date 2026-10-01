@@ -1,14 +1,20 @@
 "use client";
 
-import { User } from "lucide-react";
-import Link from "next/link";
-
 import { SOCIAL_ICONS } from "@/components/ui/social-icons";
 import { HEADER_SOCIALS } from "@/content/navigation";
 import { cn } from "@/lib/utils";
 
+/**
+ * The mobile panel's icon rail.
+ *
+ * `size-11` is the 44px minimum touch target, and it is the only place this
+ * variant renders — the header's own rail uses `inverted` — so it can be sized
+ * for a thumb outright rather than compromising a desktop size to serve both.
+ * `rounded-full` matches the `inverted` variant, so the two rails are the same
+ * shape at different scales.
+ */
 const ICON_BUTTON =
-  "flex h-9 w-9 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground";
+  "flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground";
 
 /**
  * Compact circle for the floating pill bar: text fills with the bar's ink
@@ -27,8 +33,7 @@ export type NavIconLinksProps = {
 };
 
 /**
- * The header's right-hand icon rail: a link to the profile page followed by
- * the social channels.
+ * The header's right-hand icon rail: the social channels.
  *
  * Rendered twice — inline on desktop and inside the mobile panel — so the
  * markup and the icon-label pairs live here exactly once.
@@ -41,12 +46,6 @@ export function NavIconLinks({
   const buttonClass = variant === "inverted" ? ICON_BUTTON_INVERTED : ICON_BUTTON;
   return (
     <ul className={cn("flex items-center gap-1", className)}>
-      <li>
-        <Link href="/profile" className={buttonClass} onClick={onNavigate}>
-          <span className="sr-only">GitHub style profile</span>
-          <User aria-hidden="true" className="size-4" />
-        </Link>
-      </li>
       {HEADER_SOCIALS.map(({ label, href, icon, external }) => {
         const Icon = SOCIAL_ICONS[icon];
         return (

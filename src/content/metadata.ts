@@ -14,9 +14,6 @@ import { SITE } from "./site";
 const HOME_TITLE = `${SITE.name} | ${SITE.role}`;
 const HOME_DESCRIPTION = `${SITE.name}, ${SITE.role}. Builds LLM, RAG, OCR, and multi-agent systems end to end with Python, FastAPI, and LangChain.`;
 
-const PROFILE_TITLE = `${SITE.name} (@${SITE.handle}) | ${SITE.role}`;
-const PROFILE_DESCRIPTION = `GitHub-style profile for ${SITE.name}. ${SITE.role} building LLM, RAG, OCR, and multi-agent systems with Python, FastAPI, and LangChain.`;
-
 const PAPER_TITLE = `3D Paper Certificate | ${SITE.name}`;
 const PAPER_DESCRIPTION = `The ${SITE.role} certificate as an interactive translucent 3D paper document, rendered in the browser.`;
 
@@ -51,20 +48,6 @@ export const rootMetadata: Metadata = {
 /** Home page inherits the root title/description; only the canonical differs. */
 export const homeMetadata: Metadata = {
   alternates: { canonical: "/" },
-};
-
-export const profileMetadata: Metadata = {
-  title: PROFILE_TITLE,
-  description: PROFILE_DESCRIPTION,
-  alternates: { canonical: "/profile" },
-  openGraph: {
-    title: PROFILE_TITLE,
-    description: PROFILE_DESCRIPTION,
-  },
-  twitter: {
-    title: PROFILE_TITLE,
-    description: PROFILE_DESCRIPTION,
-  },
 };
 
 export const paperMetadata: Metadata = {

@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { Renderer, Program, Mesh, Triangle } from "ogl";
 import "./gradient-waves.css";
 
+import { isViewTransitionActive } from "@/lib/view-transition";
+
 export type GradientWavesProps = {
   horizonColor?: string;
   waveColor?: string;
@@ -267,9 +269,27 @@ const GradientWaves = ({
     let raf = 0;
     let isVisible = true;
     let isPageVisible = !document.hidden;
-    const t0 = performance.now();
+    let t0 = performance.now();
+    // Elapsed time held while a view transition is running, or null while the
+    // animation is playing normally. See `isViewTransitionActive`.
+    let frozenMs: number | null = null;
 
     const loop = (t: number) => {
+      // Rescheduled before the freeze check so the loop keeps ticking while
+      // held: stopping it would mean never noticing the transition had ended.
+      raf = requestAnimationFrame(loop);
+
+      if (isViewTransitionActive()) {
+        // Hold the frame that is currently on screen, and rebase the clock so
+        // `iTime` continues from the same value rather than jumping forward by
+        // the length of the transition. Without the rebase the shader time would
+        // resume where it would have been, which is the pop this prevents.
+        if (frozenMs === null) frozenMs = t - t0;
+        t0 = t - frozenMs;
+        return;
+      }
+      frozenMs = null;
+
       program.uniforms.iTime.value = (t - t0) * 0.001;
       const tx = enableMouseRef.current ? targetMouse[0] : 0.5;
       const ty = enableMouseRef.current ? targetMouse[1] : 0.5;
@@ -278,7 +298,6 @@ const GradientWaves = ({
       program.uniforms.uMouse.value[0] = currentMouse[0];
       program.uniforms.uMouse.value[1] = currentMouse[1];
       renderer.render({ scene: mesh });
-      raf = requestAnimationFrame(loop);
     };
 
     const tryStart = () => {

@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@/shaders/community.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { WordsPreloader } from "@/components/ui/words-preloader";
 import { rootMetadata } from "@/content/metadata";
 
 export const metadata: Metadata = rootMetadata;
@@ -23,10 +22,10 @@ const geistMono = Geist_Mono({
  * preloader, and the skip link that targets `#main` — which every page renders
  * via `<PageShell>`.
  *
- * The preloader lives here rather than in a page because the App Router keeps
- * this layout mounted across client-side navigations: `/` to `/profile` swaps
- * the page subtree and leaves the preloader alone, so the intro never replays
- * on a route change.
+ * The preloader lives on the home page only (`src/app/page.tsx`), not here.
+ * It is a cold-load introduction to one page, so charging it to every route
+ * meant a visitor who opened `/paper` or hit a 404 paid for a greeting that had
+ * nothing to do with the page they asked for.
  *
  * `suppressHydrationWarning` is required by `next-themes`: it sets the `dark`
  * class on `<html>` from a blocking script, so the served markup and the first
@@ -48,7 +47,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Skip to content
           </a>
           {children}
-          <WordsPreloader />
         </ThemeProvider>
       </body>
     </html>

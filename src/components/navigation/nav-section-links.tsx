@@ -13,8 +13,15 @@ const linkVariants = cva("block px-3 text-sm font-medium transition-colors", {
     variant: {
       /** Desktop row, paired with the sliding underline indicator. */
       underline: "relative py-2",
-      /** Mobile stack, paired with the left rule. */
-      bordered: "border-l-2 border-transparent py-2.5",
+      /**
+       * Mobile stack, paired with the left rule.
+       *
+       * `flex items-center min-h-11` rather than more padding: the row is a
+       * finger's height on a phone, and 44px is the smallest target that is
+       * reliably hittable with a thumb. Padding alone reached only 38px, and it
+       * is a `block`, so the text would sit off-centre in a taller box anyway.
+       */
+      bordered: "flex min-h-11 items-center border-l-2 border-transparent py-2.5",
       /** Inside the top notch: always light, since the notch stays dark. */
       notch: "relative py-2",
     },

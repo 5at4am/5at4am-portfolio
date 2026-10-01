@@ -56,7 +56,20 @@ export function TextRoll({ children, className, center = false, charClass }: Tex
     center ? STAGGER * Math.abs(index - (letters.length - 1) / 2) : STAGGER * index;
 
   if (hydrated && prefersReducedMotion) {
-    return <span className={cn("block", className)}>{children}</span>;
+    // `aria-hidden` has to be here too, and it is not a detail. This branch
+    // still renders the visible text; it just does not animate it. Callers
+    // already pair TextRoll with an `sr-only` label, because the animated copy
+    // is decorative — and `sr-only` is a CSS clip, NOT `aria-hidden`, so it is
+    // always in the accessible name. Without this attribute both copies get
+    // concatenated and every control announces itself twice: "AboutAbout",
+    // "AchievementsAchievements", "Satyam Raj, back to top5at4am". Measured in
+    // the accessibility tree, so it only bites people who have reduced motion
+    // switched on — which is a real setting, not an edge case.
+    return (
+      <span aria-hidden="true" className={cn("block", className)}>
+        {children}
+      </span>
+    );
   }
 
   return (
@@ -64,29 +77,51 @@ export function TextRoll({ children, className, center = false, charClass }: Tex
       aria-hidden="true"
       className={cn("relative block overflow-hidden py-[0.1em]", className)}
     >
-      <div>
-        {letters.map((letter, index) => (
-          <motion.span
-            key={`base-${index}`}
-            variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
-            transition={{ ease: "easeInOut", delay: delayFor(index) }}
-            className={cn("inline-block", charClass?.(letter, index))}
-          >
-            {letter}
-          </motion.span>
-        ))}
-      </div>
-      <div className="absolute inset-0">
-        {letters.map((letter, index) => (
-          <motion.span
-            key={`roll-${index}`}
-            variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
-            transition={{ ease: "easeInOut", delay: delayFor(index) }}
-            className={cn("inline-block", charClass?.(letter, index))}
-          >
-            {letter}
-          </motion.span>
-        ))}
+      {/* ── WHY THERE IS A WRAPPER IN HERE ────────────────────
+          The roll layer is absolutely positioned, and on this root
+          `inset-0` would resolve against its PADDING box — one
+          `padding-top` above where the base copy sits in the
+          content box. That 1.4px offset shows up twice, and both
+          times it is the text itself that looks wrong:
+
+            at rest, the incoming copy's ascenders peek in below
+            the resting text. A ghost row of letter-tops under the
+            wordmark, which is most of what made this look broken.
+
+            at the end of the roll, the visible glyph snaps from
+            15.8px to 14.4px — the roll copy lands where the base
+            copy was NOT — and snaps back on the way out.
+
+          This wrapper is the containing block for the roll layer
+          instead, and it starts at the content box, so `inset-0`
+          means the same line the base copy is on. The two layers
+          are then aligned by construction, the travel distance is
+          still exactly one line, and the padding is stated once. */}
+      <div className="relative">
+        <div>
+          {letters.map((letter, index) => (
+            <motion.span
+              key={`base-${index}`}
+              variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
+              transition={{ ease: "easeInOut", delay: delayFor(index) }}
+              className={cn("inline-block", charClass?.(letter, index))}
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </div>
+        <div className="absolute inset-0">
+          {letters.map((letter, index) => (
+            <motion.span
+              key={`roll-${index}`}
+              variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
+              transition={{ ease: "easeInOut", delay: delayFor(index) }}
+              className={cn("inline-block", charClass?.(letter, index))}
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </div>
       </div>
     </span>
   );

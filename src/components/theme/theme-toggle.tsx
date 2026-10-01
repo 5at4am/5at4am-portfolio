@@ -1,7 +1,7 @@
 "use client";
 
 import { Around } from "@/components/ui/around";
-import { useThemeToggle } from "@/components/ui/skiper-ui/skiper26";
+import { DEFAULT_WIPE, useThemeSwitch } from "@/components/theme/use-theme-switch";
 import { cn } from "@/lib/utils";
 
 export type ThemeToggleProps = {
@@ -16,40 +16,57 @@ export type ThemeToggleProps = {
 /**
  * Light / dark switch.
  *
- * **Two halves, kept deliberately apart.** The full-page theme-change animation
- * comes from `useThemeToggle` in `skiper26` and is used unmodified: the
- * circular `document.startViewTransition` wipe (`variant="circle-blur"`,
- * blur on, `start="top-right"`) and the `next-themes` wiring behind it. The
- * button face is `Around` from the toggles.dev registry — a CSS-driven sun that
- * morphs into a moon clipped out of the same disc, with the rays popping out.
- * Only the button changes; the transition and the styling do not.
+ * The behaviour lives in `useThemeSwitch` so the theme lab drives the exact
+ * code path that ships, rather than a copy that can drift from it.
  *
- * **Dark-state binding.** `Around` is deliberately *uncontrolled*: its icon is
- * CSS-only (`dark:` variants), so it follows the `dark` class that the site's
- * `next-themes` provider applies to `<html>` — no mirrored state, no hydration
- * mismatch, and the morph stays perfectly in step with the class flip that the
- * view transition performs. Clicking runs `toggleTheme`, which wraps the
- * `next-themes` swap in `document.startViewTransition`.
+ * **The button face** is `Around` from the toggles.dev registry: a CSS-driven
+ * sun that morphs into a moon clipped out of the same disc. It is deliberately
+ * *uncontrolled* — its icon is styled purely with `dark:` variants, so it
+ * follows the `dark` class on `<html>` with no mirrored state and no hydration
+ * mismatch.
  *
- * **View transitions.** `document.startViewTransition` is feature-detected in
- * `useThemeToggle`; browsers without it swap the theme immediately down the same
- * path. The wipe CSS is injected once into a `<style id="theme-transition-styles">`
- * in `<head>` and rewritten on each toggle.
+ * **The wipe** is skiper26's `circle-blur` circular reveal (`blur` on,
+ * `start="top-right"`), reused as-is: `createAnimation` returns the same CSS
+ * skiper26 injects, written into `<style id="theme-transition-styles">` in
+ * `<head>` and rewritten per toggle.
  *
- * **Sizing / styling.** The chip surface (glass, border, shadows) is supplied by
- * the caller's `className`, so the toggle can float over any background. The
- * unit-square 32×32 `<svg>` is pinned to 24px via `[&_svg]:size-6`.
+ * **Why this does not call `useThemeToggle`.** That hook hands
+ * `document.startViewTransition` a callback that calls `setTheme` and returns
+ * `void`, but `next-themes` applies the `dark` class in a *passive effect*
+ * (`useEffect(() => applyTheme(theme), [theme])`) — not during that call. The
+ * browser snapshots the "after" state as soon as the callback settles, which is
+ * before the class has landed, so the snapshot holds the OLD theme. The wipe
+ * then animates the old snapshot for its full second and the live new theme is
+ * revealed all at once when the transition tears down: a single flash at the
+ * end of every switch.
+ *
+ * So the transition is driven here instead, with the class applied
+ * *synchronously* inside the callback, which is what the snapshot has to
+ * capture. `setTheme` still runs, so `next-themes` keeps its own state, the
+ * media-query listener, and `localStorage` in step; its effect then re-applies
+ * the class that is already there, which is a no-op. The callback stays
+ * synchronous for the same reason: returning a promise that waits on a frame
+ * deadlocks the capture phase, because rendering is suspended until it settles.
+ *
+ * `color-scheme` is set inline for the same reason: `next-themes` writes it
+ * through the DOM too, and the UA canvas colour is part of the snapshot.
+ *
+ * Browsers without `document.startViewTransition` fall through to `setTheme`
+ * and swap immediately, which is the correct behaviour with nothing to animate.
+ *
+ * The colour transitions in `globals.css` are suppressed for the duration of
+ * the transition by `html:active-view-transition`; see the note there.
+ *
+ * Live animations are paused for the same window and released on
+ * `transition.finished`, so nothing the snapshot froze can drift out from under
+ * it and pop when the transition tears down.
  */
 export function ThemeToggle({ className, tone = "default" }: ThemeToggleProps) {
-  const { toggleTheme } = useThemeToggle({
-    variant: "circle-blur",
-    blur: true,
-    start: "top-right",
-  });
+  const toggle = useThemeSwitch(DEFAULT_WIPE);
 
   return (
     <Around
-      onClick={toggleTheme}
+      onClick={toggle}
       aria-label="Toggle theme"
       className={cn(
         "inline-flex size-8 items-center justify-center rounded-full p-0 [&_svg]:size-6",

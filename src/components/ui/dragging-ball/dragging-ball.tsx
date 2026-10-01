@@ -223,6 +223,14 @@ export function DraggingBall({
     dragging.current = true;
   };
 
+  /* `onDragEnd` CLEARS the flag. It cannot reuse `onDragStart`: leaving
+     this true after the gesture means the next ordinary tap ends in
+     `onPointerUp` believing it was the tail of a drag, stamps itself, and
+     then throws away its own click. The ball stops opening its menu. */
+  const onDragEnd = () => {
+    dragging.current = false;
+  };
+
   const onPointerUp = () => {
     if (dragging.current) draggedAt.current = performance.now();
     dragging.current = false;
@@ -266,7 +274,7 @@ export function DraggingBall({
       }}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      onDragEnd={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={onClick}
       onKeyDown={onKeyDown}
       /* ── the hand, before the move ──────────────────────────

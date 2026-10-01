@@ -1,7 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { SimpleThemeToggle } from "@/components/theme/simple-theme-toggle";
+// TEMPORARY: the animated toggle is commented out while the flash is isolated.
+// import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SITE } from "@/content/site";
 
 /**
@@ -26,7 +28,8 @@ export function PaperHeader() {
         <p className="ml-auto hidden font-mono text-xs text-muted-foreground sm:block">
           3D paper certificate
         </p>
-        <ThemeToggle className="shrink-0 sm:-mr-1" />
+        {/* Plain cross-fade switch. See the note in site-header. */}
+        <SimpleThemeToggle className="shrink-0 sm:-mr-1" />
       </nav>
     </header>
   );

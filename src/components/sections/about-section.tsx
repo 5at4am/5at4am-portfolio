@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 
 import { Section } from "@/components/ui/section";
 import { TagList } from "@/components/ui/tag-list";
+import { EyeTracker } from "@/components/ui/eye-tracker/eye-tracker";
 import { ABOUT, EDUCATION, type AboutParagraph } from "@/content/site";
 
 export type AboutSectionProps = {
@@ -99,9 +100,28 @@ export function AboutSection({ variant = "default" }: AboutSectionProps) {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-2xl space-y-5"
         >
-          <p className="text-lg font-medium leading-relaxed text-foreground">
-            {ABOUT.lead}
-          </p>
+          <div className="flex items-center gap-5 sm:gap-6">
+            {/* The tracker's own frame is a fixed 200px so a wall of them never
+                rescales the ball. `Ball` reads as an avatar at this size where
+                the default `Cube` reads as a rounded square. The frame is
+                centered in a box that owns the layout space, and the ball lands
+                dead centre inside it. */}
+            <div className="relative size-24 shrink-0">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <EyeTracker
+                  size={96}
+                  shape="Ball"
+                  follow={55}
+                  bounce={25}
+                  tone="ink"
+                  decorative
+                />
+              </div>
+            </div>
+            <p className="text-lg font-medium leading-relaxed text-foreground">
+              {ABOUT.lead}
+            </p>
+          </div>
           {ABOUT.focus.map((paragraph) => (
             <HighlightedParagraph key={paragraph.text} {...paragraph} />
           ))}
