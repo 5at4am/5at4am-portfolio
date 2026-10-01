@@ -428,6 +428,17 @@ static-export HTML — a footer that only mounts in an effect is a footer crawle
   | `5at4am-portfolio` | `next` | Dead at `60b1c71`, predates the curtain footer. |
   - `5at4am/5at4am.github.io` came from the **GitHub Student Pack** (that is where the free `*.io` domain came
     from). Its `main` is unrelated history from this repo — it cannot be fast-forwarded against.
+  - `5at4am-portfolio` has **no Pages site** (`gh api repos/5at4am/5at4am-portfolio/pages` → 404) and **no
+    workflow runs ever** (`gh run list` is empty). The `publish-site.yml` mirror workflow has therefore never
+    executed; `site/` has only ever reached the live repo by manual push. Its `PAGES_PAT` secret is not set
+    either, so that workflow would fail at the clone step if it ever triggered.
+  - Pages settings on `5at4am.github.io`, read via `gh api repos/5at4am/5at4am.github.io/pages`:
+    `status: built`, `https_enforced: true`, `cname: 5at4am.me`, `custom_404: true`. **Enforce HTTPS is on** —
+    the toggle the user could not click did get enabled, which retires the cert-issuance worry above.
+  - `gh` (GitHub CLI 2.102.0) is installed at `C:\Program Files\GitHub CLI\gh.exe` and already authenticated as
+    `5at4am` with `repo`/`workflow`/`read:org` scopes. It is **not on `PATH`** in this shell — prepend
+    `$env:PATH = "C:\Program Files\GitHub CLI;$env:PATH"` per session, or call the exe by full path. Use it to
+    read repo/Pages settings instead of asking the user to check the UI.
   - The two apps share the GitHub account but **not an ancestor commit**. `5at4am-portfolio` `main` has no
     `27630bf`, and vice versa. They are separate projects that happen to share a repo name, not two versions of
     one site. `git push` to this repo's `main` will be rejected as non-fast-forward, and **must never be forced**:
