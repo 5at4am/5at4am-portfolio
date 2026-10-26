@@ -1,4 +1,4 @@
-import { ContactBall } from "@/components/layout/contact-ball";
+import { RajBall } from "@/components/layout/raj-ball";
 import { PageShell } from "@/components/layout/page-shell";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
@@ -10,6 +10,7 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { ProjectsSection } from "@/components/sections/projects-section";
 import { SkillsSection } from "@/components/sections/skills-section";
 import { WordsPreloader } from "@/components/ui/words-preloader";
+import { PortfolioChat } from "@/components/ui/portfolio-chat";
 import { homeMetadata } from "@/content/metadata";
 
 export const metadata = homeMetadata;
@@ -21,7 +22,7 @@ export const metadata = homeMetadata;
  * Order is the resume reading order and matches `NAV_SECTIONS` (plus the hero,
  * which is deliberately not in the nav).
  *
- * `ContactBall` is passed as `overlay`, not as a child. It is a fixed
+ * `RajBall` is passed as `overlay`, not as a child. It is a fixed
  * layer over the whole page and can be dragged anywhere, and the curtain
  * transform on `<main>` would otherwise make `<main>` its containing block —
  * a `fixed` element inside a transformed ancestor stops being viewport-relative
@@ -51,10 +52,18 @@ export default function HomePage() {
             nothing was looking, and the counter, progress bar and Skip button
             rendered at the bottom of the *document* instead of the bottom of
             the screen. Same trap `PageShell.overlay` documents for
-            `ContactBall`; this is that prop doing its second job.
+            `RajBall`; this is that prop doing its second job.
           */}
           <WordsPreloader />
-          <ContactBall />
+          <RajBall />
+          {/*
+            The portfolio chat lives here for the same reason as the two above: it
+            is `position: fixed`, and the curtain puts a transform on `<main>`,
+            which would make `<main>` its containing block. Mounted inside `<main>`
+            the panel would be positioned against the document rather than the
+            viewport and would scroll off with the page.
+          */}
+          <PortfolioChat />
         </>
       }
     >
