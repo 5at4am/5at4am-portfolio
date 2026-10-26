@@ -1,9 +1,11 @@
+import { AchievementsBento } from "@/components/ui/achievements-bento";
 import { Section, type SectionVariant } from "@/components/ui/section";
-import { AchievementsTimelineAceternity } from "@/components/ui/achievements-timeline-aceternity";
 import { AWARDS } from "@/content/achievements";
 
 /**
- * Awards, hackathon results, and certifications. Rendered with Aceternity-style timeline.
+ * Awards, hackathon results, and certifications as an issuer-grouped bento:
+ * the top result is a wide feature, multi-credential programmes take more room,
+ * and a summary band closes with the counts.
  */
 export function AchievementsSection({ variant }: { variant?: SectionVariant }) {
   return (
@@ -12,7 +14,7 @@ export function AchievementsSection({ variant }: { variant?: SectionVariant }) {
       title="Achievements and Certifications"
       variant={variant}
     >
-      <AchievementsTimelineAceternity awards={AWARDS} />
+      <AchievementsBento awards={AWARDS} />
     </Section>
   );
 }

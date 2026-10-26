@@ -38,11 +38,18 @@ export const AWARDS: readonly Award[] = [
   {
     title: "Best Capstone Project, Enterprise Contract Intelligence and Risk Analyzer",
     org: "WiiZ x ESTREL.AI Agentic AI Program",
+    /* Same programme as the Certificate of Participation below, which spells its
+       org "WiiZ x ESTREL.AI". Stated rather than matched with a substring rule:
+       see the note on `Award.issuer`. It is the one place on the page where a
+       single programme visibly yielded two credentials, and that only reads if
+       they sit under one heading. */
+    issuer: "WiiZ x ESTREL.AI",
     scope: "team",
   },
   {
     title: "Certificate Program in Artificial Intelligence and Machine Learning, Gold (70% and above)",
     org: "Aligned to IT-ITeS Sector Skills Council, NASSCOM competency standards",
+    issuer: "NASSCOM / IT-ITeS Sector Skills Council",
     scope: "personal",
   },
   {
@@ -67,12 +74,12 @@ export const AWARDS: readonly Award[] = [
     title: "Free Java Certification Course",
     org: "DataFlair",
     date: "Nov 2024",
-    scope: "personal",
     credentialId: "187305",
   },
   {
     title: "Certificate of Participation, Agentic AI Program",
     org: "WiiZ x ESTREL.AI",
+    issuer: "WiiZ x ESTREL.AI",
     scope: "team",
   },
 ];
