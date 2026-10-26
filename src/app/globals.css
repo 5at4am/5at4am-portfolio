@@ -961,3 +961,122 @@ inverts all of them at once, which is a better outcome than carrying two
     --word-fill: 45%;
   }
 }
+
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   Bencho interactions for Experience and Achievements.
+
+   Both are colour-only. Neither moves its tile, because both sections are
+   reading surfaces: a card that tilts or lifts while the pointer crosses it
+   costs legibility, and `achievements-ledger.tsx` already rejected a pointer
+   tilt for exactly that reason.
+
+   ΓöÇΓöÇ edge light ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   Adapted from bencho.dev/blocks/edge-light. The component writes
+   `--edge-angle` on pointer move; the arc below is centred on that angle.
+   The ring is painted with a masked padding box, so it follows the card's
+   own rounded corners instead of drawing a second rectangle.
+
+   The 1px arc is mixed from `--foreground`, which is near-black in the light
+   theme and near-white in the dark one, so it is visible on both. It is a
+   hover/focus cue only: the card is not a control, and no information is
+   hidden behind it.
+
+   ΓöÇΓöÇ ink bloom ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   Adapted from bencho.dev/blocks/ink-bloom. Pressing a tile sets
+   `--bloom-x` / `--bloom-y` and flips `data-bloom`, which runs the keyframe
+   once. It sits behind the content at z-index 1; every tile's content is
+   z-index 10. `forwards` leaves the pool transparent at the end rather than
+   snapping it back to the resting state.
+
+   Under reduced motion both decorations are removed outright. There is no
+   state here the reader needs in order to understand the section, so
+   removing the decoration loses nothing.
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+
+.edge-light {
+  --edge-angle: 90deg;
+  position: relative;
+}
+
+.edge-light::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from calc(var(--edge-angle) - 20deg),
+    transparent 0deg,
+    color-mix(in oklab, var(--foreground) 60%, transparent) 20deg,
+    transparent 40deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 260ms var(--ease-change, cubic-bezier(0.32, 0.72, 0, 1));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.edge-light:hover::after,
+.edge-light:focus-within::after {
+  opacity: 1;
+}
+
+.ink-bloom {
+  position: relative;
+}
+
+.ink-bloom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    10rem circle at var(--bloom-x, 50%) var(--bloom-y, 50%),
+    color-mix(in oklab, var(--foreground) 16%, transparent) 0%,
+    transparent 62%
+  );
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ink-bloom[data-bloom="true"]::after {
+  animation: ink-bloom 620ms var(--ease-change, cubic-bezier(0.32, 0.72, 0, 1))
+    forwards;
+}
+
+.ink-bloom-on-dark::after {
+  background: radial-gradient(
+    10rem circle at var(--bloom-x, 50%) var(--bloom-y, 50%),
+    rgba(255, 255, 255, 0.16) 0%,
+    transparent 62%
+  );
+}
+
+@keyframes ink-bloom {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-light::after,
+  .ink-bloom::after {
+    display: none;
+  }
+}

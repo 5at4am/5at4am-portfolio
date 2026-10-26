@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared shapes for all resume/site content.
  *
  * Content modules under `src/content` are plain data, typed here so a typo in
@@ -60,6 +60,16 @@ export type ExperienceItem = {
    */
   outcome: string;
   bullets: readonly string[];
+  /**
+   * The tools this role actually used, authored here rather than parsed out of
+   * the bullets.
+   *
+   * Parsing was tried and rejected: matching "RAG" inside a prose sentence is a
+   * guess that quietly rots when a bullet is reworded, and a chip list that
+   * silently loses an item is worse than no chip list. Authored, it is also
+   * ordered by prominence rather than by wherever the word happened to fall.
+   */
+  stack: readonly string[];
 };
 
 export type ProjectLink = {
@@ -85,14 +95,25 @@ export type PinnedRepo = {
   href: string;
 };
 
-export type SkillGroup = {
-  group: string;
-  items: readonly string[];
-};
-
+/** An award, hackathon result or certification. */
 export type Award = {
   title: string;
   org: string;
+  /**
+   * The body that issued this, when `org` is not itself the issuer.
+   *
+   * `AchievementsLedger` groups by issuer, and two of the WiiZ credentials carry
+   * different `org` strings — "WiiZ x ESTREL.AI Agentic AI Program" and
+   * "WiiZ x ESTREL.AI" — while being two credentials from the SAME programme.
+   * Matching on `org` would split them into two one-item groups and lose the only
+   * place on the page where one programme visibly yielded more than one thing.
+   *
+   * An explicit field rather than fuzzy-matching the strings: a substring rule
+   * would also have caught unrelated organisations by accident, and would break
+   * silently the first time a name was reworded. Omitted when `org` is already
+   * the issuer, which is most of them.
+   */
+  issuer?: string;
   /**
    * When it was issued or won, e.g. `"2026"` or `"Dec 2025"`. Optional because
    * a few recognitions have no reliably stated date, and a guessed date on a
@@ -109,6 +130,11 @@ export type Award = {
   /** Public credential id, where the issuer exposes one. */
   credentialId?: string;
   href?: string;
+};
+
+export type SkillGroup = {
+  group: string;
+  items: readonly string[];
 };
 
 export type Education = {

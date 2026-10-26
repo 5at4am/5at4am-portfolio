@@ -7,6 +7,11 @@ import type { ExperienceItem } from "./types";
  * `start`/`end` are `YYYY-MM` and `end: null` means current, so the timeline
  * rail does not need editing every time a role ends. `meta` is still the string
  * that reaches the page; the numbers only drive geometry.
+ *
+ * `stack` is authored per role rather than derived from `bullets`. It is what the
+ * duration bar's segments are coloured from, so it wants to be a short, honest
+ * list of what the role was actually about — not every noun that happens to
+ * appear in the prose.
  */
 export const EXPERIENCE: readonly ExperienceItem[] = [
   {
@@ -16,6 +21,7 @@ export const EXPERIENCE: readonly ExperienceItem[] = [
     start: "2026-5",
     end: null,
     outcome: "60% less manual paperwork",
+    stack: ["Python", "LLM", "OCR", "Workflow Automation"],
     bullets: [
       "Engineer AI workflow automation with Python, LLMs, and OCR for enterprise business processes.",
       "Built document-processing applications that automated paperwork and reduced manual effort by 60% across internal workflows.",
@@ -28,6 +34,7 @@ export const EXPERIENCE: readonly ExperienceItem[] = [
     start: "2025-12",
     end: "2026-1",
     outcome: "Best Capstone Project",
+    stack: ["LangChain", "Multi-Agent", "NLP"],
     bullets: [
       "Built a multi-agent Contract Risk Analyzer with LangChain to extract, classify, and summarize risks from legal contracts.",
       "Won Best Capstone Project and Highest Workflow Creation for the program.",
@@ -40,6 +47,7 @@ export const EXPERIENCE: readonly ExperienceItem[] = [
     start: "2025-1",
     end: "2025-3",
     outcome: "RAG on Vertex AI and Gemini",
+    stack: ["Vertex AI", "Gemini", "RAG", "Vector Search"],
     bullets: [
       "Built GenAI applications with Vertex AI, Gemini APIs, RAG, prompt engineering, vector search, and structured outputs.",
     ],
