@@ -1,11 +1,10 @@
-import { ExperienceTimeline } from "@/components/sections/experience-timeline";
 import { Section, type SectionVariant } from "@/components/ui/section";
+import { ExperienceCards } from "@/components/ui/experience-cards";
 import { EXPERIENCE } from "@/content/experience";
 
 /**
- * Internship history, most recent first in the data and oldest first on the
- * rail, which is the direction a timeline reads. Rendered on both the home
- * resume and the profile page from the same `EXPERIENCE` data.
+ * Internship history rendered as spotlight cards combining timeline-style
+ * outcome highlights with stack and bullets.
  */
 export function ExperienceSection({
   variant,
@@ -14,7 +13,7 @@ export function ExperienceSection({
 }) {
   return (
     <Section id="experience" title="Experience" variant={variant}>
-      <ExperienceTimeline items={EXPERIENCE} />
+      <ExperienceCards items={EXPERIENCE} />
     </Section>
   );
 }
