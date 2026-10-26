@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent, type Ref } from "react";
 import { motion, useMotionValue, useReducedMotion, type MotionValue } from "motion/react";
 
 import { EyeTracker } from "@/components/ui/eye-tracker/eye-tracker";
@@ -99,6 +99,15 @@ export type DraggingBallProps = {
   label?: string;
   /** `aria-expanded` for the thing `onActivate` opens. */
   expanded?: boolean;
+  /**
+   * Ref to the ball's own root element, so a caller can return focus here when
+   * something it opened is dismissed.
+   *
+   * The ball is a draggable `motion.div` with `role="button"`, not a `<button>`,
+   * so React gives no ref through props for free. This is attached imperatively
+   * at the root and handed to the caller's `RadialMenu`.
+   */
+  rootRef?: Ref<HTMLDivElement>;
 };
 
 export function DraggingBall({
@@ -113,6 +122,7 @@ export function DraggingBall({
   onActivate,
   label = "Open contact links",
   expanded,
+  rootRef,
 }: DraggingBallProps = {}) {
   const g = Math.min(1, Math.max(0, grip / 100));
   const reduce = useReducedMotion();
@@ -256,6 +266,7 @@ export function DraggingBall({
   return (
     <motion.span
       data-ball
+      ref={rootRef}
       className="drg-ball"
       style={{ width: size, height: size, x, y }}
       drag
@@ -285,11 +296,19 @@ export function DraggingBall({
          fights the drag for the transform.
 
          A spring rather than an ease: a squeeze that arrives on a
-         curve is a shape being animated, and one that arrives with
-         a little overshoot is a soft thing giving. */
-      whileHover={{ scaleX: 1 + SWELL * g, scaleY: 1 + SWELL * g }}
-      whileTap={{ scaleX: 1 - 0.16 * g, scaleY: 1 + 0.08 * g }}
-      transition={{ type: "spring", stiffness: 520, damping: 24, mass: 0.6 }}
+curve is a shape being animated, and one that arrives with
+          a little overshoot is a soft thing giving.
+
+          Gated on `reduce`. The file's `reduce` value was only consulted inside
+          `settle()`, so the drag settle respected it while the hover and press
+          springs did not — Framer does not disable `whileHover`/`whileTap` for
+          anyone who asked for reduced motion, and a squish on every hover is
+          exactly the unsolicited movement the preference is about. Both are
+          `undefined` rather than a zero-scale object, so nothing is animated at
+          all rather than something animated to its resting value. */
+      whileHover={reduce ? undefined : { scaleX: 1 + SWELL * g, scaleY: 1 + SWELL * g }}
+      whileTap={reduce ? undefined : { scaleX: 1 - 0.16 * g, scaleY: 1 + 0.08 * g }}
+      transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 24, mass: 0.6 }}
       role="button"
       tabIndex={0}
       aria-label={label}

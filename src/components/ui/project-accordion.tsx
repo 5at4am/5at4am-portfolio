@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, useReducedMotion } from "motion/react";
 import { useCallback, useId, useState } from "react";
@@ -7,6 +7,8 @@ import { BulletList } from "@/components/ui/bullet-list";
 import { ExternalLink } from "@/components/ui/external-link";
 import { TagList } from "@/components/ui/tag-list";
 import { useEscapeKey } from "@/hooks/use-escape-key";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { usePointerLight } from "@/hooks/use-pointer-light";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/content/types";
 
@@ -41,6 +43,46 @@ function surfaceFor(name: string) {
   };
 }
 
+/* ── the panel's opening cascade ────────────────────────────────────
+   `radial-menu.tsx` deals its fan out with `transitionDelay: i * stagger`. The
+   same shape runs down this panel's contents so a project arrives rather than
+   appearing. Slower than the fan's 28ms because these are paragraphs, not discs
+   on an arc, and text that arrives slowly is text nobody reads.
+
+   Transform-only — see `skills-index.tsx` for why an `opacity: 0` initial is
+   never acceptable anywhere in this codebase. */
+const CASCADE_STAGGER = 0.055;
+
+/**
+ * The target for one step of the cascade.
+ *
+ * `opacity` is 1 in BOTH states and never animated. That is what keeps the panel
+ * readable with scripting off, and it is why the effect is a lift rather than a
+ * fade: a fade would have to pass through zero, and zero is the one value that
+ * makes the content disappear.
+ *
+ * **The delay does NOT live here.** `transitionDelay` placed inside an `animate`
+ * object is silently ignored by framer — `animate` accepts only animatable
+ * values — so the first version of this had all four blocks moving in lockstep,
+ * measured at an identical `y: 4.73` and then an identical `y: 0`. The delay
+ * belongs in the `transition` prop, which is what `cascadeTransition` is for.
+ */
+function cascade(open: boolean) {
+  return { opacity: 1, y: open ? 0 : 6 };
+}
+
+function cascadeTransition(reduced: boolean, step: number) {
+  return reduced
+    ? { duration: 0 }
+    : {
+        type: "spring" as const,
+        stiffness: 420,
+        damping: 34,
+        mass: 0.6,
+        delay: step * CASCADE_STAGGER,
+      };
+}
+
 function ProjectRow({
   project,
   index,
@@ -59,7 +101,26 @@ function ProjectRow({
   buttonId: string;
 }) {
   const shouldReduceMotion = useReducedMotion();
+  const hydrated = useHydrated();
   const surface = surfaceFor(project.name);
+
+  /* `hydrated &&`, NOT the raw `shouldReduceMotion`.
+
+     `useReducedMotion()` returns `null` on the server but the real boolean on the
+     client's FIRST render — it reads `matchMedia` synchronously. Testing it
+     directly therefore picks two different branches: the server rendered this
+     panel with a `style="transform: ..."` from the tilt, and a reduced-motion
+     client rendered it with no transform at all, which React reports as a
+     hydration mismatch on every load for exactly the people who asked for less
+     motion. `hydrated` is false for the server and the hydration render alike, so
+     both take the animated branch and the reduced branch arrives one render later.
+     Same rule as `reduced` in `skills-index.tsx` and `experience-timeline.tsx`. */
+  const reduced = hydrated && shouldReduceMotion === true;
+
+  /* Destructured, not used as `light.x`: `react-hooks/refs` rejects any property
+     access on an object that holds a ref, even for the sibling properties that
+     have nothing to do with it. */
+  const { ref, handlers, tiltStyle } = usePointerLight<HTMLDivElement>(reduced);
 
   return (
     <div data-project-row={project.name} data-open={open ? "true" : "false"}>
@@ -114,10 +175,47 @@ function ProjectRow({
           {String(index + 1).padStart(2, "0")}
         </span>
 
-        {/* The always-visible name. Never inside an animated wrapper. */}
-        <span className="min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
+        {/* The always-visible name. Never inside an animated wrapper.
+
+            An `<h3>`, so a heading-outline walk finds the eight projects as the
+            children of `h2 Projects`. They were bare `<span>`s in buttons, which
+            meant the section exposed a heading with no children at all and
+            broke outline parity with Experience - where the three roles are
+            `<h3>` under `<h2>`. Eight project names are the section's entire
+            navigation, so they are what someone skimming the outline is looking
+            for.
+
+            Legal inside a `<button>`, and it does not add a second stop to the
+            accessible name: heading content is not concatenated into a button's
+            name, so this announces as "ProjectName, collapsed, button" exactly
+            as the span did. */}
+        <h3 className="min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
           {project.name}
-        </span>
+        </h3>
+
+        {!open && project.stack.length > 0 ? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "hidden items-center gap-1.5 text-xs sm:flex",
+              "text-muted-foreground"
+            )}
+          >
+            {project.stack.slice(0, 2).map((item) => (
+              <span
+                key={item}
+                className="max-w-[9rem] truncate rounded-full border border-border/70 px-2 py-0.5"
+              >
+                {item}
+              </span>
+            ))}
+            {project.stack.length > 2 ? (
+              <span className="rounded-full border border-border/70 px-2 py-0.5">
+                +{project.stack.length - 2}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
 
         {/* The stack's signature gesture, kept: a line that draws out to the
             right on hover. Purely decorative, so it is hidden from assistive
@@ -169,41 +267,90 @@ function ProjectRow({
         initial={false}
         animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
         transition={
-          shouldReduceMotion
+          /* `reduced`, not `shouldReduceMotion`, so the collapsed panel's inline
+             `height` is identical on the server and the hydration render. */
+          reduced
             ? { duration: 0.01 }
             : { duration: 0.42, ease: [0.32, 0.72, 0, 1] }
         }
         className="overflow-hidden"
       >
+        {/* The generative surface. It is the reason a collapsed row is plain text
+            and an open row is not: `surfaceFor` derives a stable gradient from the
+            project's own name, so a project always looks the same and no two look
+            alike, with no assets to load.
+
+            The pointer spotlight and the tilt come from `use-pointer-light`, the
+            same hook `glass-card.tsx` uses, so the two surfaces on this site
+            behave identically. `panel-spot` is the element the hook writes
+            `--light-x` / `--light-y` onto, and the gradient that reads them is in
+            `globals.css`. It sits UNDER the content (`z-index: 0` against the
+            content's `z-index: 2`) so it can never wash out the text — an earlier
+            version had it above and the measured contrast of the muted line fell
+            because of it. */}
         <div
-          className="relative overflow-hidden rounded-2xl border border-white/10"
+          ref={ref}
+          {...handlers}
+          className="panel-spot relative overflow-hidden rounded-2xl border border-white/10"
           style={{ background: surface.background }}
         >
-          <div className="px-4 pb-6 pt-1 sm:px-6">
-            <p className="max-w-prose text-sm leading-relaxed text-zinc-200/90">
-              {project.tagline}
-            </p>
+          <motion.div style={tiltStyle}>
+            <div className="px-4 pb-6 pt-1 sm:px-6">
+              {/*
+                The cascade. `radial-menu.tsx` deals its options out with
+                `transitionDelay: i * stagger`; this is the same idea applied to a
+                panel's contents, so a project reads as arriving rather than
+                appearing. Transform-only, staggered off the panel's own open, and
+                gated on `open` so a collapsed panel is not holding twenty live
+                animations.
+              */}
+              <motion.p
+                className="max-w-prose text-sm leading-relaxed text-zinc-200/90"
+                initial={false}
+                animate={cascade(open)}
+                transition={cascadeTransition(reduced, 0)}
+              >
+                {project.tagline}
+              </motion.p>
 
-            <BulletList
-              items={project.bullets}
-              className="mt-4 text-zinc-200/80"
-            />
+              <motion.div
+                initial={false}
+                animate={cascade(open)}
+                transition={cascadeTransition(reduced, 1)}
+              >
+                <BulletList
+                  items={project.bullets}
+                  className="mt-4 text-zinc-200/80"
+                />
+              </motion.div>
 
-            <TagList
-              items={project.stack}
-              label={`${project.name} stack`}
-              tone="onDark"
-              className="mt-4"
-            />
+              <motion.div
+                initial={false}
+                animate={cascade(open)}
+                transition={cascadeTransition(reduced, 2)}
+              >
+                <TagList
+                  items={project.stack}
+                  label={`${project.name} stack`}
+                  tone="onDark"
+                  className="mt-4"
+                />
+              </motion.div>
 
-            <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              {project.links.map((link) => (
-                <ExternalLink key={link.href} href={link.href} tone="onDark">
-                  {link.label}
-                </ExternalLink>
-              ))}
-            </p>
-          </div>
+              <motion.p
+                className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm"
+                initial={false}
+                animate={cascade(open)}
+                transition={cascadeTransition(reduced, 3)}
+              >
+                {project.links.map((link) => (
+                  <ExternalLink key={link.href} href={link.href} tone="onDark">
+                    {link.label}
+                  </ExternalLink>
+                ))}
+              </motion.p>
+            </div>
+          </motion.div>
         </div>
       </motion.div>
     </div>

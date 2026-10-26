@@ -134,6 +134,47 @@
   --vng-space-lg: 2rem;
   --vng-transition-speed: 150ms;
   --vng-transition-speed-slow: calc(var(--vng-transition-speed) * 2);
+
+  /* ══ a spring, as an easing function ═════════════════════════════
+     Anything driven by JS here uses framer's real spring — the same
+     `{ stiffness: 520, damping: 24, mass: 0.6 }` that `dragging-ball.tsx` uses
+     for its hover and press. This token exists for the motion CSS has to own:
+     the `<details>` disclosure chevron, whose open state lives in the platform
+     and not in React state, so there is no spring to hand it.
+
+     `linear()` samples a curve as a list of points, and the values here overshoot
+     past 1 before settling — that overshoot is the whole point. An `ease-out`
+     arrives and stops; a spring arrives, goes slightly past, and comes back, and
+     the small counter-move is what reads as mass.
+
+     Sampled from a critically-ish damped spring, matching the framer numbers
+     closely enough that a CSS-driven rotation and a JS-driven scale feel like
+     the same material. Baseline `ease-out` is deliberately NOT used as the
+     fallback: silently degrading a spring to a curve would hide the difference
+     rather than resolve it. */
+  --ease-spring: linear(
+    0, 0.0088 1.6%, 0.0345 3.2%, 0.1092 4.8%, 0.3105 6.4%, 0.6411 8%, 0.8695 9.6%,
+    0.9995 11.2%, 1.0555 12.8%, 1.0555 14.4%, 1.0241 16%, 0.9917 17.6%, 0.9779 19.2%,
+    0.9759 20.8%, 0.9811 22.4%, 0.9895 24%, 0.9979 25.6%, 1.0035 27.2%, 1.0063 28.8%,
+    1.0069 30.4%, 1.0057 32%, 1.0035 33.6%, 1.001 35.2%, 0.9986 36.8%, 0.9967 38.4%,
+    0.9955 40%, 0.9949 41.6%, 0.9948 43.2%, 0.9951 44.8%, 0.9957 46.4%, 0.9965 48%,
+    0.9974 49.6%, 0.9983 51.2%, 0.9992 52.8%, 1.0001 54.4%, 1.0008 56%, 1.0014 57.6%,
+    1.0018 59.2%, 1.002 60.8%, 1.002 62.4%, 1.0019 64%, 1.0017 65.6%, 1.0014 67.2%,
+    1.0011 68.8%, 1.0008 70.4%, 1.0005 72%, 1.0002 73.6%, 0.9999 75.2%, 0.9997 76.8%,
+    0.9995 78.4%, 0.9994 80%, 0.9993 81.6%, 0.9993 83.2%, 0.9994 84.8%, 0.9995 86.4%,
+    0.9997 88%, 0.9999 89.6%, 1.0001 91.2%, 1.0003 92.8%, 1.0004 94.4%, 1.0005 96%,
+    1.0005 97.6%, 1.0005 99.2%, 1.0005 100%
+  );
+  /* An older, shorter sample of the same curve. Kept because several components
+     already interpolate `theme` transitions and cannot read a CSS variable —
+     `next-themes` sets inline style strings, so a colour crossing between themes
+     has to carry its own timing function. A spring is the wrong curve for a
+     theme change (a colour should not overshoot past its target and come back),
+     so this is `--ease-change`, kept identical so the two files cannot drift. */
+  --ease-theme: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Motion that is purely a state change — a colour crossing — wants no
+     overshoot at all. Kept separate from the spring so the two are not confused. */
+  --ease-change: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .dark {
@@ -181,7 +222,17 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* `outline-ring/50` was here, and it is gone on purpose.
+
+       That declaration is what made the focus indicator unusable. It set only a
+       COLOUR, leaving width and style to the UA default (measured:
+       `outline-style: auto`, `outline-width: 1px`), and `--ring` resolves to
+       `--vng-primary` — near-black in light. On the always-dark notch header
+       (`bg-zinc-950/85`) the light-theme ring measured 1:1, i.e. invisible, and
+       it outranked every per-surface override tried against it, including an
+       unlayered one. See the `:focus-visible` rule below, which now owns the
+       indicator completely: width, style, offset and colour. */
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
@@ -189,6 +240,80 @@
   html {
     @apply font-sans;
   }
+}
+
+/*
+ * Focus indicator.
+ *
+ * The `outline-ring/50` on `*` above only sets a COLOUR. Width and style were
+ * left to the UA default, which measured as `outline-style: auto` at 1px, and
+ * `--ring` resolves to `--vng-primary`: near-black in light, near-white in dark.
+ * Against the always-dark notch header (`bg-zinc-950/85`) that gave:
+ *
+ * | theme    | indicator vs notch |
+ * |----------|--------------------|
+ * | light    | 1:1 — invisible    |
+ * | dark     | 5.36:1             |
+ *
+ * So in the light theme the focus ring on the wordmark, the section links and the
+ * hamburger was a near-black hairline on a near-black surface.
+ *
+ * ── WHY THIS IS OUTSIDE `@layer base` ──────────────────────────────
+ * Two attempts inside the layer both failed silently, and the second one is the
+ * instructive one. Written as a per-surface override —
+ * `header nav :focus-visible { outline-color: #fafafa }` — it has far more
+ * specificity than the `*` rule and still lost: measured in the light theme the
+ * computed colour was still `oklab(0.14 … / 0.5)`, which is the `*` rule's
+ * `color-mix(in oklab, var(--ring) 50%, transparent)`. Re-expressing it as a
+ * `--focus-ring` custom property set on the surface did not help either, because
+ * the `:focus-visible` shorthand still lost to the `*` longhand.
+ *
+ * **Layer order beats specificity.** Tailwind's compiled `*` rule lands in a
+ * layer that outranks `base`, so nothing inside `base` can out-specify it no
+ * matter how narrow the selector. Unlayered rules outrank every layer, which is
+ * what this placement buys. Verified in both themes after moving it here.
+ *
+ * `:focus-visible` rather than `:focus` so a mouse click leaves no ring behind,
+ * and `2px` with a `2px` offset to clear WCAG 2.4.13's minimum.
+ */
+:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--ring));
+  outline-offset: 2px;
+}
+
+/*
+ * Surfaces that stay dark in both themes declare their own indicator ink.
+ * `--foreground` is the wrong token here precisely because it tracks the page
+ * theme while these surfaces do not, so the colour is stated outright as
+ * zinc-100 — the same ink the notch's own text uses.
+ */
+header nav,
+.curtain-footer {
+  --focus-ring: #fafafa;
+}
+
+/*
+ * The About paragraphs are focusable, and must NOT get an outline.
+ *
+ * They are prose, not controls: there is nothing to operate, and each one draws
+ * its own 2px left rule which fills as the paragraph becomes the one being read.
+ * With the outline as well, focusing a paragraph put a 2px white rectangle around
+ * a block of body copy — measured `outline: solid 2px` alongside
+ * `border-left: 2px #fff`, and plainly visible in a screenshot.
+ *
+ * This has to be its own rule rather than Tailwind's `outline-none` on the
+ * element. The `:focus-visible` rule above is UNLAYERED, and unlayered CSS
+ * outranks every `@layer` — including Tailwind's `utilities` layer — so
+ * `outline-none` on the element compiled, applied, and lost. Measured after
+ * adding it: still `solid 2px`. Attribute selector for specificity (0,2,0) over
+ * the bare pseudo-class (0,1,0), in the same unlayered context, so it wins.
+ *
+ * The left rule, the wash and the lifted text colour are the whole focus
+ * treatment and all three are visible, so nothing is lost — see the note on the
+ * wrapper in `about-section.tsx`.
+ */
+[data-about-paragraph]:focus-visible {
+  outline: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -213,15 +338,119 @@
    theme and near-white in the dark one — the same inversion every other accent
    on the site uses. `box-decoration-break: clone` keeps the wash intact when a
    phrase wraps across lines. */
+/* About: the ink wash behind a highlighted phrase.
+
+   `--about-wash` is REGISTERED, which is the whole trick. An unregistered custom
+   property is an untyped token: CSS cannot interpolate it, so a transition on it
+   does nothing and the wash snaps between its two states. `@property` gives it a
+   `<number>` syntax and an initial value, which makes it a real animatable
+   value. Without the registration the ignition below is a hard cut.
+
+   The component sets `--about-wash: 1` inline on the active paragraph and leaves
+   it unset otherwise, so the resting state is this declaration's initial `0.34`
+   rather than a second value the component has to keep in sync.
+
+   The resting value was raised from the original flat 20%/7% mix because it
+   measured at **1.0:1 against the page** — a 20% tint of `--primary` on white is
+   essentially the page colour, so the highlights were carrying no emphasis at
+   all and read as slightly dirty text rather than as marked phrases.
+
+   340ms with an expo-out curve, matching the curtain wordmark and the preloader,
+   so the page shares one motion signature. */
+/* `inherits: TRUE`, which is the fix for the wash never igniting.
+
+   With `inherits: false` the pseudo-element `.about-highlight::after` did NOT
+   see the `--about-wash: 1` its own mark was given. Measured: the mark computed
+   `--about-wash: 1` while its `::after` computed `opacity: 0.34` — the
+   registration's initial value, every time. So the active paragraph's wash was
+   painted at exactly the resting strength, which is why hovering a paragraph
+   looked like nothing happened and why a screenshot showed the *un-hovered*
+   phrases looking more emphasised than the hovered ones.
+
+   An unregistered custom property inherits by default, so this was a
+   side-effect of adding `@property` to make it animatable: registration resets
+   inheritance to whatever `inherits` says, and the default is `false`. Registering
+   a property to animate it silently un-inherits it.
+
+   `true` costs nothing here. The only elements that set the property are the
+   marks themselves, and the pseudo-element is their child, so the value it reads
+   is always the one from its own mark. */
+@property --about-wash {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.34;
+}
+
 .about-highlight {
+  position: relative;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
+  border-radius: 2px;
+  transition: --about-wash 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+ * The wash is a pseudo-element, NOT a background on the mark.
+ *
+ * Two earlier versions painted a gradient straight into the mark and both were
+ * wrong in the same way. A mark is an inline box whose height is the line box,
+ * so a gradient painted into it concentrates along the baseline: in the
+ * screenshots the ignited phrases came out as underlined links —
+ * "engineering problem" and "outside a notebook" both did. Tuning the angle
+ * (104deg) and the size (240%, wide enough for a sweep) did not fix it, because
+ * the problem was the box, not the gradient.
+ *
+ * An absolutely positioned pseudo-element inset by a fraction of an em is a real
+ * highlighter mark: it extends above the cap height and below the baseline, so
+ * it cannot be read as a rule. `box-decoration-break: clone` on the mark keeps it
+ * correct when a phrase wraps.
+ *
+ * ── WHY `opacity` AND NOT `scaleX` ──────────────────────────────────
+ * The ignition was a left-to-right `scaleX` sweep, and it was wrong twice over,
+ * both times only visible in a screenshot.
+ *
+ * 1. At rest the wash sat at `--about-wash: 0.34`, so it covered a third of each
+ *    phrase and stopped mid-word. That reads as a smudge or a clipped fill, not
+ *    as a highlighter — the resting state is what a reader looks at for 95% of
+ *    the time, so it has to look deliberate on its own.
+ * 2. Swept to full width, the gradient's falloff left most of the phrase almost
+ *    transparent, so the ACTIVE paragraph ended up looking weaker than the
+ *    resting ones. `engineering problem` and `outside a notebook` were fainter
+ *    lit than the untouched phrases above them.
+ *
+ * So the wash is full-width always and `--about-wash` drives `opacity`: soft at
+ * rest, full strength when the paragraph is the one being read. `opacity` is
+ * compositor-driven and cannot reflow. The sweep is gone on purpose — the
+ * paragraph-level motion (the left rule filling, the chips lighting, the tracker
+ * morphing) is what carries the sense of something responding.
+ *
+ * The gradient itself is deliberately FLAT — 22% holding to 70% before it
+ * fades — because a steep falloff across a multi-word phrase leaves the last
+ * words unlit.
+ */
+.about-highlight::after {
+  content: "";
+  position: absolute;
+  inset: -0.12em -0.18em;
+  z-index: -1;
+  border-radius: 3px;
+  opacity: var(--about-wash);
   background-image: linear-gradient(
-    104deg,
-    color-mix(in oklab, var(--primary) 20%, transparent) 0%,
-    color-mix(in oklab, var(--primary) 7%, transparent) 36%,
-    transparent 60%
+    100deg,
+    color-mix(in oklab, var(--primary) 22%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 19%, transparent) 70%,
+    transparent 100%
   );
+}
+
+/* The wash is decoration behind text, never the text itself, so it is not held
+   to a text contrast ratio. The *text* on the mark is `text-foreground` and
+   always clears AA. What matters is that the resting wash is visible at all,
+   which is why the initial value is 0.34 and not 0. */
+@media (prefers-reduced-motion: reduce) {
+  .about-highlight {
+    transition: none;
+  }
 }
 
 /* Skills: the one continuous animation in the section. A hairline of ink sweeps
@@ -267,6 +496,42 @@ html:active-view-transition .skills-sheen {
     background-position: 50% 0;
   }
 }
+
+/* ── the expanded project panel's spotlight ───────────────────────────
+   The `--light-x` / `--light-y` pair `use-pointer-light.ts` writes, over this
+   panel's own generative gradient.
+
+   `screen` blending, because the surface underneath is a mid-tone saturated
+   gradient rather than a flat page-coloured pane — normal blending at this alpha
+   would grey the gradient out instead of lighting it. And a 22rem radius, because
+   the panel is much larger than a card: a 15rem circle would sit in one corner of
+   it rather than reading as light travelling across a surface.
+
+   It sits at `z-index: 0` and the panel's content at `z-index: 2`, so it cannot
+   wash out the type no matter how bright the sweep gets. */
+.panel-spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    22rem circle at var(--light-x, 50%) var(--light-y, 50%),
+    color-mix(in oklab, var(--foreground) 22%, transparent) 0%,
+    transparent 55%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 320ms var(--ease-change, cubic-bezier(0.32, 0.72, 0, 1));
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-spot::after {
+    display: none;
+  }
+}
+
 
 @layer base {
   /* Theme-switch transitions.
@@ -962,7 +1227,7 @@ inverts all of them at once, which is a better outcome than carrying two
   }
 }
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+/* ═══════════════════════════════════════════════════════════════════
    Bencho interactions for Experience and Achievements.
 
    Both are colour-only. Neither moves its tile, because both sections are
@@ -970,7 +1235,7 @@ inverts all of them at once, which is a better outcome than carrying two
    costs legibility, and `achievements-ledger.tsx` already rejected a pointer
    tilt for exactly that reason.
 
-   ΓöÇΓöÇ edge light ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   ── edge light ──────────────────────────────────────────────────────
    Adapted from bencho.dev/blocks/edge-light. The component writes
    `--edge-angle` on pointer move; the arc below is centred on that angle.
    The ring is painted with a masked padding box, so it follows the card's
@@ -981,7 +1246,7 @@ inverts all of them at once, which is a better outcome than carrying two
    hover/focus cue only: the card is not a control, and no information is
    hidden behind it.
 
-   ΓöÇΓöÇ ink bloom ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+   ── ink bloom ───────────────────────────────────────────────────────
    Adapted from bencho.dev/blocks/ink-bloom. Pressing a tile sets
    `--bloom-x` / `--bloom-y` and flips `data-bloom`, which runs the keyframe
    once. It sits behind the content at z-index 1; every tile's content is
@@ -991,7 +1256,7 @@ inverts all of them at once, which is a better outcome than carrying two
    Under reduced motion both decorations are removed outright. There is no
    state here the reader needs in order to understand the section, so
    removing the decoration loses nothing.
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+   ═══════════════════════════════════════════════════════════════════ */
 
 .edge-light {
   --edge-angle: 90deg;

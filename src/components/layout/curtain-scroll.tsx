@@ -90,6 +90,48 @@ export function CurtainScroll() {
         ? (self: ScrollTrigger) => setFill(self.progress * 100)
         : undefined;
 
+      /*
+       * Lifting `inert` off the footer.
+       *
+       * `PageShell` renders the footer with `inert` on the server, because it is
+       * occluded behind an opaque `<main>` for the entire document and its links
+       * must not be reachable until the curtain uncovers it. This removes the
+       * attribute once the reveal has essentially finished.
+       *
+       * Two decisions worth stating:
+       *
+       * - It is written directly to the DOM rather than through state. This
+       *   component renders nothing, so there is no tree to re-render, and a
+       *   state update here would re-run this whole effect on every progress
+       *   tick and rebuild the ScrollTrigger with it.
+       *
+       * - It is released by a class toggle and checked once, not removed
+       *   unconditionally on the last tick. `onLeave` fires when the trigger
+       *   stops being active, which is the honest signal that the footer is
+       *   visible; `onUpdate` at progress 1 is the same moment but only along
+       *   the scroll direction that got there. Either way the attribute is
+       *   removed exactly once, and the guard makes a second call a no-op.
+       *
+       * Under reduced motion this whole block is skipped: the CSS un-fixes the
+       * footer into a normal end-of-page element, it is never occluded, and
+       * `PageShell` does not render the `inert` attribute on that path because
+       * the attribute is only added by the markup above, which this component
+       * never reaches.
+       */
+      const footer = document.querySelector<HTMLElement>("[data-curtain-footer]");
+      if (footer?.hasAttribute("inert")) {
+        /* The GSAP context reverts everything created inside its callback, and
+           a ScrollTrigger created in here is inside it, so this is already
+           cleaned up on unmount. Nothing extra to register. */
+        ScrollTrigger.create({
+          trigger: runway,
+          start: "top bottom",
+          end: "bottom bottom",
+          onLeave: () => footer.removeAttribute("inert"),
+          onEnterBack: () => footer.removeAttribute("inert"),
+        });
+      }
+
       gsap.fromTo(
         page,
         { y: 0 },

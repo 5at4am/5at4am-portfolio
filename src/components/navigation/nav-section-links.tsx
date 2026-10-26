@@ -52,6 +52,12 @@ export type NavSectionLinksProps = {
    */
   variant: "underline" | "bordered" | "notch";
   activeId: string;
+  /**
+   * Prefix for each link's href. `""` where the sections are on this page, `"/"`
+   * where they are not — the 404 reuses this component and has none, so bare
+   * fragments there pointed at nothing. See `SiteHeader`'s `homePrefix`.
+   */
+  homePrefix?: string;
   /** Called after a section is chosen, so the mobile panel can close itself. */
   onNavigate?: () => void;
   className?: string;
@@ -61,11 +67,13 @@ function NavSectionLink({
   section,
   isActive,
   variant,
+  homePrefix,
   onNavigate,
 }: {
   section: NavSection;
   isActive: boolean;
   variant: "underline" | "bordered" | "notch";
+  homePrefix: string;
   onNavigate?: () => void;
 }) {
   const shouldReduceMotion = useReducedMotion();
@@ -74,9 +82,9 @@ function NavSectionLink({
 
   return (
     <li className="overflow-hidden">
-      <motion.a
-        href={`#${section.id}`}
-        initial="initial"
+<motion.a
+          href={`${homePrefix}#${section.id}`}
+          initial="initial"
         whileHover="hovered"
         whileFocus="hovered"
         onClick={onNavigate}
@@ -124,6 +132,7 @@ function NavSectionLink({
 export function NavSectionLinks({
   variant,
   activeId,
+  homePrefix = "",
   onNavigate,
   className,
 }: NavSectionLinksProps) {
@@ -142,6 +151,7 @@ export function NavSectionLinks({
           section={section}
           isActive={section.id === activeId}
           variant={variant}
+          homePrefix={homePrefix}
           onNavigate={onNavigate}
         />
       ))}

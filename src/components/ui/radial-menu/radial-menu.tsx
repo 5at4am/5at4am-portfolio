@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import { motion, type MotionStyle } from "motion/react";
 
 import { SOCIAL_ICONS } from "@/components/ui/social-icons";
@@ -97,6 +97,14 @@ export type RadialMenuProps = {
   angle?: number;
   /** Position for the fan's root, usually the ball's own `x`/`y` motion values so the two cannot drift apart. */
   style?: MotionStyle;
+  /**
+   * The control that opened the fan, so Escape can give focus back to it.
+   *
+   * A ref rather than a detected `activeElement`, for the reason
+   * `use-focus-containment` documents: a tap does not focus the button it taps
+   * on touch browsers, so the fan cannot work out who opened it on its own.
+   */
+  returnFocusTo?: RefObject<HTMLElement | null>;
   className?: string;
 };
 
@@ -113,6 +121,7 @@ export function RadialMenu({
   onOpenChange,
   angle = -90,
   style,
+  returnFocusTo: returnFocusToProp,
   className,
 }: RadialMenuProps = {}) {
   const arc = DEALT_WITH.slice(0, clamp(count ?? DEALT_WITH.length, 2, DEALT_WITH.length));
@@ -126,19 +135,44 @@ export function RadialMenu({
   /* one path to the truth, so there is no call site that can update the state
      and forget to tell the parent */
   const open = controlled ?? own;
-  const setOpen = (next: boolean) => {
-    if (controlled === undefined) setOwn(next);
-    onOpenChange?.(next);
-  };
+  /* `useCallback` because `closeAndRestore` below depends on it, and an
+     unstable `setOpen` would rebuild that callback — and therefore re-arm the
+     Escape listener — on every render. */
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (controlled === undefined) setOwn(next);
+      onOpenChange?.(next);
+    },
+    [controlled, onOpenChange],
+  );
 
-  /* ── ESCAPE CLOSES IT ─────────────────────────────────────
+  /* ── ESCAPE CLOSES IT, AND RETURNS FOCUS ─────────────────
      A disclosure that the pointer can open and only the pointer
      can close is a trap for the keyboard, and one for the
      trackpad user whose other hand is on the escape key. The
      project's own hook, already used by the mobile nav panel for
      exactly this, rather than a second listener shaped the same
-     way. */
-  useEscapeKey(open, () => setOpen(false));
+     way.
+
+     Escape ALSO hands focus back to the trigger. Without that,
+     closing the fan while focus sat on one of its options strands
+     focus: the same `open` change re-adds `inert` to `.fan-arc`, the
+     focused node becomes inert, and focus falls to `<body>` — so the
+     next Tab restarts from the top of the document and a keyboard
+     user who opened the fan, pressed Escape, and kept tabbing found
+     themselves back at the header.
+
+     The trigger is passed in rather than detected, for the same
+     reason `use-focus-containment` takes a ref: a tap does not focus
+     the control it taps on touch browsers, so this cannot rediscover
+     its own trigger. */
+  const fallbackFocus = useRef<HTMLElement | null>(null);
+  const closeAndRestore = useCallback(() => {
+    setOpen(false);
+    (returnFocusToProp ?? fallbackFocus).current?.focus();
+  }, [setOpen, returnFocusToProp]);
+
+  useEscapeKey(open, closeAndRestore);
 
   /* the arc is centred on `angle`, so its middle option points wherever the
      caller says and the two shoulders straddle it */

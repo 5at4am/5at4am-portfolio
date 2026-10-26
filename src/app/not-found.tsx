@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { CONTACT_LINKS } from "@/content/contact";
 import { NAV_SECTIONS } from "@/content/navigation";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 /**
  * Stagger for the blocks. Short, and in the same band as the rest of the site.
@@ -36,10 +37,12 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  * error state without turning the page into a joke.
  */
 export default function NotFound() {
-  // Null before the query settles, so it counts as reduced here too: rendering
-  // the plain markup means the content is never hidden waiting on an animation
-  // that may not be allowed to run. See skills-index.tsx for the same trap.
-  const reduced = useReducedMotion() !== false;
+  const reduceMotion = useReducedMotion();
+  const hydrated = useHydrated();
+  /* See `reduced` in `skills-index.tsx`: `reduceMotion !== false` is `true` on the
+     server and `false` in the browser, so it rendered two different trees and
+     React reported a hydration mismatch. */
+  const reduced = hydrated && reduceMotion === true;
 
   const blocks = [
     <p
@@ -65,11 +68,16 @@ export default function NotFound() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <SiteHeader />
+      {/* `homePrefix="/"`. The header's section links and wordmark are bare
+          fragments, and a 404 has none of those sections — verified in the built
+          HTML, where the only ids were `_R_` and `main`, so all seven announced
+          as links and did nothing. The prefix sends them to the real sections. */}
+      <SiteHeader homePrefix="/" />
 
       <main
         id="main"
-        className="relative flex flex-1 flex-col justify-center overflow-hidden px-4 py-20 sm:px-6"
+        tabIndex={-1}
+        className="relative flex flex-1 flex-col justify-center overflow-hidden px-4 py-20 outline-none sm:px-6"
       >
         <div className="mx-auto w-full max-w-5xl">
           {blocks.map((block, index) =>
@@ -107,7 +115,19 @@ export default function NotFound() {
 
           {/* The doormat. A 404 is the page most likely to be reached from
               outside, so the navigation is mirrored here rather than left to
-              the header alone. */}
+              the header alone.
+
+              These are ABSOLUTE links, not the `#id` fragments they used to be.
+              A 404 has nothing to scroll: the only ids in the built document are
+              `_R_` and `main`, so all six fragments pointed at nothing. Verified
+              in the exported HTML — seven anchors, seven dead targets. They
+              announced as links and did nothing, which is the opposite of the
+              intent recorded in the comment above.
+
+              Taking them to `/#about` rather than `/` means someone who arrived
+              on a stale deep link still lands on the section they were probably
+              after, and the browser scrolls to the real fragment once the home
+              page mounts. */}
           <nav aria-label="Sections" className="mt-12 border-t border-border pt-6">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               Sections
@@ -116,7 +136,7 @@ export default function NotFound() {
               {NAV_SECTIONS.map((section) => (
                 <li key={section.id}>
                   <Link
-                    href={`#${section.id}`}
+                    href={`/#${section.id}`}
                     className="inline-block py-2 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground"
                   >
                     {section.label}

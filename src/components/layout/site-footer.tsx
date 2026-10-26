@@ -162,10 +162,24 @@ export function SiteFooter() {
           and the back-to-top, which are not sections of the page. */}
       <div className="border-t border-border">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 border-t border-border px-4 py-5 sm:px-6 md:flex-row md:items-start md:justify-between md:gap-10 md:py-8">
-          <nav aria-label="Footer">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <nav aria-labelledby="footer-sections-label">
+            {/*
+              An `<h3>` rather than a `<p>`. These labels are structural — they
+              say what each group of links is — and a heading is what makes them
+              that. As `<p>`s they were invisible to a heading-outline walk and to
+              anything reading the footer's structure. `visually-hidden` is NOT
+              used: they are visible on screen at 11px, and hiding a visible
+              label from assistive tech would make the accessible tree disagree
+              with the page. `aria-labelledby` on the `nav` above replaces the
+              old `aria-label="Footer"`, so the landmark is named by its own
+              visible heading rather than by a label that duplicates it.
+            */}
+            <h3
+              id="footer-sections-label"
+              className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+            >
               Sections
-            </p>
+            </h3>
             <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
               {NAV_SECTIONS.map((section) => (
                 <li key={section.id}>
@@ -187,11 +201,19 @@ export function SiteFooter() {
 
           {/* `md:items-end` on the parent and `md:text-right` here, so on a wide
               screen both groups sit on one baseline instead of the label
-              stacking above the icons. */}
-          <div className="shrink-0 md:text-right">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              stacking above the icons.
+
+              Now a `<nav>` too. This group held no landmark at all — a bare
+              `<div>` of four links and a back-to-top, named by a `<p>` that
+              nothing pointed at — so a screen reader's landmark list showed
+              "Footer" and then simply nothing for the channels. */}
+          <nav aria-labelledby="footer-elsewhere-label" className="shrink-0 md:text-right">
+            <h3
+              id="footer-elsewhere-label"
+              className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+            >
               Elsewhere
-            </p>
+            </h3>
             <ul className="mt-2 flex items-center gap-1 md:justify-end">
               {CONTACT_LINKS.map((link) => {
                 const Icon = SOCIAL_ICONS[link.icon];
@@ -228,7 +250,7 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 border-t border-border px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">

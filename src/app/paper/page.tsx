@@ -19,8 +19,42 @@ export const metadata = paperMetadata;
 export default function PaperPage() {
   return (
     <PageShell header={<PaperHeader />} footer={<SiteFooter />}>
-      <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-10 px-4 py-16 sm:px-6 sm:py-20">
+      <section
+        /* Named by the heading below, so this becomes a real `region` landmark.
+           It was an unnamed `<section>` before, which means it was not exposed as
+           a landmark at all. */
+        aria-labelledby="paper-heading"
+        className="mx-auto flex w-full max-w-5xl flex-col items-center gap-10 px-4 py-16 sm:px-6 sm:py-20"
+      >
+        {/*
+          This route shipped with zero `<h1>`, `<h2>` and `<h3>` — verified in the
+          built HTML. The only title-ish string was a `<p>` in the header, and the
+          certificate's own text is painted with `ctx.fillText` onto a canvas
+          inside the iframe, so the route's substantive content existed only as
+          pixels with no text alternative at all.
+
+          The heading is visually hidden rather than shown because the document
+          itself is the hero and a caption above it would compete with it. It is
+          still a real `h1` in the outline, so the page has a document title for
+          assistive tech and for the heading outline.
+        */}
+        <h1 id="paper-heading" className="sr-only">
+          3D paper certificate for the Estrel.ai capstone
+        </h1>
+
         <ConnectThreeDPaper variant="estrel" className="aspect-[4/5] w-full max-w-2xl" />
+
+        {/*
+          The text alternative for the canvas. The certificate is drawn rather
+          than typeset, so nothing inside the iframe is selectable or readable by
+          a screen reader; this says what it is, and the credit line below it
+          keeps the attribution visible either way.
+        */}
+        <p className="max-w-2xl text-center text-sm text-muted-foreground">
+          An interactive translucent 3D paper certificate, drawn on canvas. Drag to
+          turn it and hover to light it.
+        </p>
+
         <p className="text-sm text-muted-foreground">
           {PAPER_CREDIT.text}{" "}
           <ExternalLink href={PAPER_CREDIT.href}>{PAPER_CREDIT.label}</ExternalLink>

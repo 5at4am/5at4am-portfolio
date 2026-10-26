@@ -46,12 +46,53 @@ export function PageShell({ header, footer, overlay, children }: PageShellProps)
       {/* The sliding page. `bg-background` is load-bearing, not decorative:
           without an opaque backdrop here the fixed footer shows through the
           entire document. `relative` + `z-10` puts it above `curtain-footer`. */}
-      <main id="main" data-curtain-page className="relative z-10 flex-1 bg-background">
+      {/*
+        `tabIndex={-1}` on `<main>`. Without it the skip link only moves the
+        *sequential focus navigation starting point*, not DOM focus, so the next
+        Tab continued from wherever it was — and the first focusable descendant
+        is the Experience timeline's first stop, which meant About was skipped
+        entirely. `outline-none` because a programmatic focus target should not
+        draw a ring: the user arrived here deliberately, by activating the skip
+        link, and there is no pointer position to point at.
+      */}
+      <main
+        id="main"
+        tabIndex={-1}
+        data-curtain-page
+        className="relative z-10 flex-1 bg-background outline-none"
+      >
         {children}
       </main>
       {/* Scroll distance, not content. */}
       <div data-curtain-runway className="curtain-runway" aria-hidden="true" />
-      <div data-curtain-footer className="curtain-footer">
+      {/*
+        The footer starts `inert`, and `CurtainScroll` lifts it as the curtain
+        finishes uncovering it.
+
+        The curtain leaves this footer occluded behind an opaque `<main>` for the
+        whole document and reveals it only at the very end, but `inert` was
+        never applied, so all thirteen of its links stayed in the tab order
+        while invisible. Measured at `scrollY 0` with `elementFromPoint`: 13 of
+        13 hit-tested against `<main>` rather than themselves, and because the
+        container is `position: fixed` the browser cannot scroll a focused
+        descendant into view — so tabbing produced no visible movement at all
+        (WCAG 2.4.7 Focus Visible, 2.4.11 Focus Not Obscured). Enter still fired
+        them.
+
+        `inert` rather than `aria-hidden`: it removes the subtree from the tab
+        order and the accessibility tree in one attribute, and it is the only one
+        of the two that also stops activation. It is set here on the server so
+        the hidden state is correct before any JavaScript runs, and the client
+        removes it once the footer is actually uncovered — which never happens
+        under reduced motion, where the CSS makes this a plain end-of-page
+        footer, so there the attribute stays off the element entirely (the
+        reduced-motion branch renders the footer `static` and does not toggle).
+      */}
+      <div
+        data-curtain-footer
+        className="curtain-footer"
+        inert
+      >
         {footer}
       </div>
       {overlay}

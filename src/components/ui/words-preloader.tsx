@@ -42,6 +42,29 @@ const WORD_INTERVAL = 560;
 /** ms per word when motion is reduced. A pause, not a performance. */
 const REDUCED_INTERVAL = 260;
 
+/**
+ * BCP-47 tags for the greetings, by index into `PRELOADER_WORDS`.
+ *
+ * The run is eight greetings in four scripts under `<html lang="en">`. Every
+ * word layer is `aria-hidden`, so nothing is mis-voiced today — but a document
+ * that displays text in a language it does not declare is wrong on its face, and
+ * browser translation mis-handles it the moment the layer is ever un-hidden.
+ * Declaring the language on the element that renders the script is the correct
+ * fix and costs one attribute.
+ *
+ * `undefined` for Latin, which is the document language already.
+ */
+const WORD_LANGS: readonly (string | undefined)[] = [
+  undefined, // en — Hello
+  "fr", // Bonjour
+  "es", // Hola
+  "de", // Hallo
+  "zh-Hans", // 你好
+  "ru", // Привет
+  "ja", // こんにちは
+  "hi", // नमस्ते
+];
+
 /** Fluid type size for the word. Tuned so "Bonjour" fills the measure and "你好" still fits. */
 const WORD_SIZE = "clamp(2.75rem, 15vw, 10.5rem)";
 
@@ -328,7 +351,18 @@ export function WordsPreloader({
                         }
                   }
                 >
-                  <RevealWord word={slot.word} reduced={reduced} leaving={slot.leaving} />
+                  {/*
+                    `lang` on the layer that carries the script. Harmless while
+                    the layer is `aria-hidden` — nothing is announced — and
+                    correct the moment that changes, or for a browser's own
+                    translation of the visible text.
+                  */}
+                  <RevealWord
+                    word={slot.word}
+                    reduced={reduced}
+                    leaving={slot.leaving}
+                    lang={WORD_LANGS[slot.id]}
+                  />
                 </motion.div>
               ))}
             </div>
@@ -370,7 +404,20 @@ export function WordsPreloader({
               <button
                 type="button"
                 onClick={skip}
-                className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white focus-visible:text-white"
+                /* `text-white/60`, not `text-white/45`.
+
+                   Measured on this panel's `bg-[#09090b]`: white at 45%
+                   composites to `#787878` and lands at **4.487:1**. `Skip` is
+                   10px, so it needs 4.5:1 for AA — it missed by 0.013, which is
+                   the kind of gap that looks fine in review and fails an audit.
+                   60% composites to `#a3a3a3` at 8.4:1.
+
+                   This is the panel's only labelled, focusable control: it is
+                   what dismisses a full-screen opaque overlay while the body is
+                   scroll-locked, so it has to meet the bar the decorative
+                   `text-white/45` rows beside it are exempt from. Those two rows
+                   are `aria-hidden` and stay at 45%. */
+                className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/60 underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:text-white"
               >
                 Skip
               </button>
@@ -406,6 +453,8 @@ type RevealWordProps = {
   reduced: boolean;
   /** The slot is on its way out, so the reveal plays backwards from its rest state. */
   leaving: boolean;
+  /** BCP-47 tag for the word's script, or `undefined` for the document's own. */
+  lang?: string;
 };
 
 /**
@@ -422,12 +471,13 @@ type RevealWordProps = {
  * state, so the characters unwind from wherever they were instead of snapping
  * to the start of the reverse animation.
  */
-function RevealWord({ word, reduced, leaving }: RevealWordProps) {
+function RevealWord({ word, reduced, leaving, lang }: RevealWordProps) {
   const characters = useMemo(() => splitGraphemes(word), [word]);
 
   if (reduced) {
     return (
       <motion.span
+        lang={lang}
         className={cn(WORD_TYPE_CLASS, "items-center")}
         initial={{ opacity: leaving ? 1 : 0 }}
         animate={{ opacity: leaving ? 0 : 1 }}
@@ -440,6 +490,7 @@ function RevealWord({ word, reduced, leaving }: RevealWordProps) {
 
   return (
     <motion.span
+      lang={lang}
       className={WORD_TYPE_CLASS}
       initial={leaving ? { clipPath: CURVE_OPEN } : { clipPath: CURVE_CLOSED }}
       animate={leaving ? { clipPath: CURVE_CLOSED } : { clipPath: CURVE_OPEN }}

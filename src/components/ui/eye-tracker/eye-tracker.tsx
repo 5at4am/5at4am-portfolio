@@ -327,14 +327,23 @@ export function EyeTracker({
     let nextBlink = performance.now() + 2200;
 
     const draw = (now: number) => {
-      /* a blink is 160ms down and up, as a squash on each eye */
+      /* a blink is 160ms down and up, as a squash on each eye
+
+         Gated on the SAME `still` flag the spring and the shape morph use. The
+         blink was the one part of this component that was not: it fires every
+         2.6-5.8s regardless, so both call sites — the About avatar and the
+         contact ball's face — kept a 160ms unsolicited squash running forever
+         for anyone who asked for reduced motion. `lid` stays at its resting
+         value of 1, which is open. */
       let lid = 1;
-      if (now > nextBlink) {
-        blink = now;
-        nextBlink = now + (idle ? 2000 : 2600 + Math.random() * 3200);
+      if (!still) {
+        if (now > nextBlink) {
+          blink = now;
+          nextBlink = now + (idle ? 2000 : 2600 + Math.random() * 3200);
+        }
+        const since = now - blink;
+        if (since < 160) lid = 1 - 0.9 * Math.sin((since / 160) * Math.PI);
       }
-      const since = now - blink;
-      if (since < 160) lid = 1 - 0.9 * Math.sin((since / 160) * Math.PI);
 
       /* the turn that brings the front of the ball to the face's
          spot: yaw about the vertical, pitch about the horizontal */

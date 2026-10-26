@@ -6,9 +6,10 @@ import { useMotionValue, useMotionValueEvent, useTransform } from "motion/react"
 import { DraggingBall } from "@/components/ui/dragging-ball/dragging-ball";
 import { RadialMenu } from "@/components/ui/radial-menu/radial-menu";
 
-/* ══ The contact ball ═════════════════════════════════════
-   A ball that floats over the whole page, can be dragged anywhere
-   on screen, and opens the contact channels when clicked.
+/* ══ Raj ═══════════════════════════════════════════════════
+   Named Raj, short for Raj. The ball that floats over the whole
+   page, can be dragged anywhere on screen, and opens the
+   contact channels when clicked.
 
    ── WHY IT IS AN OVERLAY AND NOT PART OF THE CONTACT SECTION ──
    The first version of this sat inside the contact section, in a
@@ -20,9 +21,8 @@ import { RadialMenu } from "@/components/ui/radial-menu/radial-menu";
    performance decision and was only a limitation.
 
    So the ball is now `position: fixed` over the whole viewport,
-   mounted beside the sections rather than inside one. It is still
-   the contact ball and it still opens the contact channels; it
-   just is not wearing a box.
+   mounted beside the sections rather than inside one. It still
+   opens the contact channels; it just is not wearing a box.
 
    ── THE STARTING POSITION ───────────────────────────────
    It parks directly above the hero's role line — "AI Engineer
@@ -79,7 +79,7 @@ const OPEN_MARGIN = FAN_REACH + OPT / 2 + CAPTION;
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
-export function ContactBall() {
+export function RajBall() {
   const [open, setOpen] = useState(false);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
@@ -150,6 +150,10 @@ export function ContactBall() {
      one — re-running it on `open` would yank the ball back under
      the hero every time the fan closed. */
   const parked = useRef(false);
+  /* The ball's own element, so Escape on the open fan can hand focus back to
+     the control that opened it. Without this, closing the fan re-adds `inert`
+     to the arc and focus falls to `<body>`. */
+  const ballRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!box.w || parked.current) return;
     const id = requestAnimationFrame(() => {
@@ -232,6 +236,7 @@ export function ContactBall() {
         onActivate={() => setOpen((was) => !was)}
         expanded={open}
         label={open ? "Close contact links" : "Open contact links"}
+        rootRef={ballRef}
       />
       <RadialMenu
         open={open}
@@ -240,6 +245,8 @@ export function ContactBall() {
         /* the fan rides the same two numbers the ball does, so it
            never detaches from it for a frame */
         style={{ x: fx, y: fy }}
+        /* Escape returns focus to the ball that opened this fan. */
+        returnFocusTo={ballRef}
       />
     </div>
   );

@@ -18,6 +18,12 @@ export type NavMobilePanelProps = {
    * See `useFocusContainment` for why this is passed rather than detected.
    */
   returnFocusTo?: RefObject<HTMLElement | null>;
+  /**
+   * Passed through to `NavSectionLinks` so the sheet's links match the notch's.
+   * `"/"` on the 404, which has none of these sections — see `SiteHeader`'s
+   * `homePrefix`.
+   */
+  homePrefix?: string;
 };
 
 /**
@@ -65,7 +71,13 @@ export type NavMobilePanelProps = {
  * while `open` stayed true, leaving the body scroll-locked with nothing on
  * screen to unlock it.
  */
-export function NavMobilePanel({ open, activeId, onClose, returnFocusTo }: NavMobilePanelProps) {
+export function NavMobilePanel({
+  open,
+  activeId,
+  onClose,
+  returnFocusTo,
+  homePrefix = "",
+}: NavMobilePanelProps) {
   const shouldReduceMotion = useReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -131,7 +143,10 @@ export function NavMobilePanel({ open, activeId, onClose, returnFocusTo }: NavMo
           className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-background pt-12 md:hidden"
         >
           <nav
-            aria-label="Primary"
+            /* "Primary, secondary" rather than a second "Primary". The notch's
+               nav is always in the DOM, so two identically-named landmarks were
+               exposed on the same route whenever this sheet was open. */
+            aria-label="Primary, secondary"
             className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           >
             {/* Two columns once there is width for them. Six stacked rows are
@@ -140,6 +155,7 @@ export function NavMobilePanel({ open, activeId, onClose, returnFocusTo }: NavMo
             <NavSectionLinks
               variant="bordered"
               activeId={activeId}
+              homePrefix={homePrefix}
               onNavigate={onClose}
               className="sm:grid sm:grid-cols-2 sm:gap-x-6"
             />

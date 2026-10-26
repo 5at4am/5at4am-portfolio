@@ -139,10 +139,15 @@ export function MorphText({
         </p>
       )}
 
-      {/* ── Scoped keyframes ──────────────────────────────────────── */}
+      {/* ── Scoped keyframes ──────────────────────────────────────────
+          The Google Fonts `@import` that used to live here is gone. It was the
+          only third-party request on the site, it was render-blocking, and the
+          family it fetched was never actually applied to anything — the
+          component takes `fontFamily` as a prop and the hero passes the site's
+          own Geist. All six `prefers-reduced-motion` blocks in `globals.css`
+          were checked and none of them covered `morph-*`, so the reduced-motion
+          rules have to live here with the keyframes they cancel. */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-
         @keyframes morph-word-rotate {
           0% {
             opacity: 0;
@@ -172,6 +177,40 @@ export function MorphText({
         @keyframes morph-fade-up {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /*
+         * Reduced motion.
+         *
+         * The word rotator is an infinite blur-and-scale loop on the largest
+         * type on the page, and an infinite animation with no pause control is
+         * exactly what WCAG 2.2.2 covers. Cancelling it is not enough on its
+         * own: every word is painted with an inline opacity of 0 and is only
+         * visible because the animation is running, so \`animation: none\` would
+         * leave the rotator empty. The first word is therefore pinned visible
+         * and the rest are pinned hidden, which is what the animation resolves
+         * to at any given moment anyway — just held still instead of cycling.
+         */
+        @media (prefers-reduced-motion: reduce) {
+          .morph-word {
+            animation: none !important;
+          }
+
+          .morph-word:first-child {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translate(-50%, -50%) !important;
+          }
+
+          .morph-word:not(:first-child) {
+            opacity: 0 !important;
+          }
+
+          .morph-subtext {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
         }
       `}</style>
     </div>

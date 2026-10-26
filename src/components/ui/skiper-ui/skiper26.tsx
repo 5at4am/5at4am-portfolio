@@ -4,10 +4,13 @@
 // `npx shadcn@latest add @skiper-ui/skiper26`. The upstream attribution and
 // licence terms are kept verbatim at the foot of this file.
 //
-// `framer-motion` (the package the registry declares) is imported as-is rather
-// than rewritten to `motion/react` as in `skiper4.tsx`: `motion` depends on
-// `framer-motion`, and npm hoists a single copy, so there is one runtime either
-// way and the upstream source stays byte-recognisable against the registry.
+// The registry declares `framer-motion` and that is what upstream shipped, but
+// `framer-motion` is now only a legacy alias for `motion` — same library, two
+// package names. This file was the LAST remaining `framer-motion` import on the
+// site (every other component already used `motion/react`), so it was also the
+// only thing keeping the alias installed. Both spellings resolve to one hoisted
+// copy at runtime, so this is behaviour-identical; the dependency has since been
+// dropped from `package.json` and `motion` is the one name the site uses.
 //
 // Three changes were made after install, all of which are required to pass this
 // repo's `tsc` / ESLint setup. Re-running the add command will reintroduce all
@@ -29,7 +32,7 @@
 // `src/components/theme/theme-toggle.tsx`). The exported `Skiper26` wrapper and
 // its `Options` panel are the upstream demo — demo copy, demo-only `bg-muted2`
 // token, and hard-coded giphy URLs — and are intentionally not rendered.
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { GripHorizontal } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useCallback, useState } from "react";

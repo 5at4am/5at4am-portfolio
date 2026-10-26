@@ -61,6 +61,19 @@ export type AboutParagraph = {
    * page. Omit for a plain paragraph.
    */
   highlights?: readonly string[];
+  /**
+   * Labels from `ABOUT.stack` that this paragraph is about, so the Stack chips
+   * can light the ones that belong to the paragraph being read.
+   *
+   * Matching is by exact label, so a chip whose label drifts out of `ABOUT.stack`
+   * simply never lights rather than lighting the wrong thing.
+   *
+   * `Next.js` and `TypeScript` are deliberately absent from all three: they are
+   * part of the stack and none of the claims above is about them. A chip that
+   * never lights is a true statement; a chip that lights for everything says
+   * nothing.
+   */
+  tools?: readonly string[];
 };
 
 export const ABOUT = {
@@ -82,14 +95,27 @@ export const ABOUT = {
         "retrieval-augmented generation (RAG)",
         "their own data",
       ],
+      /* The claim is about turning documents and messy input into something
+         queryable, so: the automation that does it, the retrieval that serves
+         it, and the app surface it arrives through. Python and FastAPI are the
+         implementation, and they belong to the third paragraph. */
+      tools: ["Automation", "RAG", "LLM Apps"],
     },
     {
       text: "Working across a final-year degree and a real internship has taught me to treat AI as an engineering problem, not a demo: systems count only when they work outside a notebook.",
       highlights: ["engineering problem", "outside a notebook"],
+      /* This paragraph is a position, not a technique, so it has no tools of its own.
+         Leaving it empty is the honest entry: the point it makes is that the
+         other tools only matter when they survive contact with a real system. */
+      tools: [],
     },
     {
       text: "I build with Python, FastAPI, and LangChain, rounded out by the web stack needed to take a model from idea to interface.",
       highlights: ["Python", "FastAPI", "LangChain"],
+      /* This paragraph names the tools outright, so it lights the three it names.
+         LangChain is the orchestration layer the rest of the site talks about,
+         so it belongs here too. */
+      tools: ["Python", "FastAPI", "LangChain"],
     },
   ],
 

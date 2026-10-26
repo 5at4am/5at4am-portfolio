@@ -16,6 +16,21 @@ import { useScrollSpy } from "@/hooks/use-scroll-spy";
 
 const SECTION_IDS = NAV_SECTIONS.map((section) => section.id);
 
+export type SiteHeaderProps = {
+  /**
+   * Prefix for the section links, and the href the wordmark returns to.
+   *
+   * `""` on the home page, where `#about` resolves against a section that is
+   * actually on the page. `"/"` on a route that reuses this header but has no
+   * sections of its own — the 404 is the only one. Verified in the built HTML
+   * before this prop existed: `/_not-found` shipped `#about #experience #projects
+   * #skills #achievements #contact #top` and the only ids in the document were
+   * `_R_` and `main`, so all seven announced as links and did nothing. With the
+   * prefix they become `/#about` and so on, which lands on the real section.
+   */
+  homePrefix?: string;
+};
+
 /**
  * Top-attached "notch" site navigation.
  *
@@ -31,7 +46,7 @@ const SECTION_IDS = NAV_SECTIONS.map((section) => section.id);
  * The only state this component owns is whether the mobile panel is open.
  * Active-section tracking lives in `useScrollSpy`.
  */
-export function SiteHeader() {
+export function SiteHeader({ homePrefix = "" }: SiteHeaderProps = {}) {
   const [open, setOpen] = useState(false);
   const { activeId } = useScrollSpy(SECTION_IDS, SCROLL_OFFSET);
   /* The mobile panel takes focus on open, so it needs somewhere to give it
@@ -65,11 +80,18 @@ export function SiteHeader() {
     <>
       <header className="pointer-events-none sticky top-0 z-50 flex justify-center">
         <nav
+          /* "Primary" for the notch, "Primary, secondary" for the sheet, so the
+             two never collide in a landmark list. While the panel is open there
+             were two landmarks both named "Primary" on the same route — the
+             notch's nav is always in the DOM and the panel's mounts alongside it.
+             Measured off the accessibility tree. The panel's own dialog role and
+             `aria-modal` already distinguish it; this just stops the duplication
+             reaching the landmark menu at all. */
           aria-label="Primary"
           className="pointer-events-auto flex h-12 w-fit max-w-[calc(100vw-6rem)] items-center gap-2 rounded-b-[20px] border border-t-0 border-white/10 bg-zinc-950/85 px-5 text-zinc-100 shadow-lg shadow-black/10 backdrop-blur-md sm:gap-3"
         >
           <motion.a
-            href="#top"
+            href={`${homePrefix}#top`}
             initial="initial"
             whileHover="hovered"
             /* The wordmark is a control with the same roll as the section
@@ -94,14 +116,27 @@ export function SiteHeader() {
             </TextRoll>
           </motion.a>
 
-          <NavSectionLinks variant="notch" activeId={activeId} />
+          <NavSectionLinks variant="notch" activeId={activeId} homePrefix={homePrefix} />
 
           <button
             ref={toggleRef}
             type="button"
             onClick={toggle}
             aria-expanded={open}
-            aria-controls="primary-menu"
+            /*
+             * `aria-controls` only while the panel is open.
+             *
+             * `nav-mobile-panel.tsx` places `id="primary-menu"` inside its
+             * `{open ? … : null}` branch, so while closed the reference dangled
+             * at an element that did not exist. `aria-controls` on a button
+             * implies the controlled region is present and can be inspected; a
+             * dangling id is worse than none, because a screen reader may
+             * announce "collapsed" and offer to jump to something absent.
+             *
+             * Dropping it while closed is what `aria-expanded` already conveys,
+             * and it satisfies the same pairing without the false promise.
+             */
+            aria-controls={open ? "primary-menu" : undefined}
             /* `size-11` is the 44px minimum touch target. It fits the 48px
                notch with 2px to spare either side, and `-mr-1.5` optically
                centres the glyph against the notch's `px-5` padding rather than
@@ -138,6 +173,13 @@ export function SiteHeader() {
           tone="default"
         />
       */}
+      {/*
+        The toggle is a sibling of `<header>`, not a child of it, because the
+        header is `pointer-events-none` with the notch opting back in — nesting it
+        would put the control inside an element that is not part of the `banner`
+        landmark for AT purposes while looking like part of the bar. It sits
+        outside so it never inherits that `pointer-events` arrangement.
+      */}
       <div className="fixed right-3 top-3 z-50">
         <SimpleThemeToggle className="border-white/10 bg-zinc-950/85 text-zinc-100" />
       </div>
@@ -147,6 +189,7 @@ export function SiteHeader() {
         activeId={activeId}
         onClose={close}
         returnFocusTo={toggleRef}
+        homePrefix={homePrefix}
       />
     </>
   );
