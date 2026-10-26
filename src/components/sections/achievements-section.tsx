@@ -1,10 +1,9 @@
 import { Section, type SectionVariant } from "@/components/ui/section";
-import { AchievementsGrid } from "@/components/ui/achievements-grid";
+import { AchievementsTimelineAceternity } from "@/components/ui/achievements-timeline-aceternity";
 import { AWARDS } from "@/content/achievements";
 
 /**
- * Awards, hackathon results, and certifications. Rendered as a spotlight grid
- * with combined Aceternity-style hover effects.
+ * Awards, hackathon results, and certifications. Rendered with Aceternity-style timeline.
  */
 export function AchievementsSection({ variant }: { variant?: SectionVariant }) {
   return (
@@ -13,7 +12,7 @@ export function AchievementsSection({ variant }: { variant?: SectionVariant }) {
       title="Achievements and Certifications"
       variant={variant}
     >
-      <AchievementsGrid awards={AWARDS} />
+      <AchievementsTimelineAceternity awards={AWARDS} />
     </Section>
   );
 }

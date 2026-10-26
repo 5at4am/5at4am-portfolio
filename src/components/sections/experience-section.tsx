@@ -1,10 +1,9 @@
 import { Section, type SectionVariant } from "@/components/ui/section";
-import { ExperienceCards } from "@/components/ui/experience-cards";
+import { ExperienceTimelineAceternity } from "@/components/ui/experience-timeline-aceternity";
 import { EXPERIENCE } from "@/content/experience";
 
 /**
- * Internship history rendered as spotlight cards combining timeline-style
- * outcome highlights with stack and bullets.
+ * Internship history rendered with Aceternity-style timeline.
  */
 export function ExperienceSection({
   variant,
@@ -13,7 +12,7 @@ export function ExperienceSection({
 }) {
   return (
     <Section id="experience" title="Experience" variant={variant}>
-      <ExperienceCards items={EXPERIENCE} />
+      <ExperienceTimelineAceternity items={EXPERIENCE} />
     </Section>
   );
 }
