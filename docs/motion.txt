@@ -1,0 +1,1186 @@
+# Motion Design Master Playbook (v2)
+
+Improved version of the earlier guides. It adds three things the first versions lacked:
+
+1. **Verified library facts** from live web research (October 2026), with unverified items clearly marked.
+2. **Measurements from your 8 reference videos** (cut counts, audio/visual sync, easing timing), with the method and limits stated.
+3. **Decision tools**: how to pick effects, how to avoid repeating yourself, how to plan a video from brief to export.
+
+Companion files: `motion-code-starters.md` (code and expressions) and `motion-project-templates.md` (fill-in templates).
+
+---
+
+## Part 1. How to Decide What Motion to Use
+
+### 1.1 Decision flow
+
+```
+1. What is the video's job?
+   Sell / Explain / Show a product / Build a brand / Entertain
+        |
+2. What is the tone? (pick ONE)
+   Calm-premium | Friendly-playful | Techy-precise | Bold-energetic | Editorial-cultural
+        |
+3. What is the platform?
+   Vertical social | Landscape web/YouTube | App Store / product page | Presentation
+        |
+4. Pick ONE signature technique (Section 1.2), then 2 supporting ones.
+        |
+5. Lock the motion language (Section 1.3) before animating anything.
+```
+
+### 1.2 Signature technique by job and tone
+
+| Job and tone | Signature technique | Supporting | Seen in your references |
+|---|---|---|---|
+| Explain an app feature, friendly | **One object morphing through states** | Cursor, highlighter marks, soft glass | V2 |
+| Product launch, techy | **Chaos-to-order story** (dark to light) | Line draw, radial fan, real UI | V1 |
+| Tagline or mission, bold | **Kinetic type flow** (sentence scrolls as it builds) | Gradient text, counter punchline | V4 |
+| Title or logo name, playful | **Per-letter shape-shifting** (short words only) | Motion blur, tracking animation | V5 |
+| Educational reel, editorial | **Cutout objects as visual metaphors** | Serif/sans mix, ghost text, starbursts | V6 |
+| Brand film, organic | **Recurring carrier shape** (mascot) | Dark/light alternation, floating UI cards | V7 |
+| Design-resource reel | **Template + palette swatches** | Slow animated mesh gradient | V8 |
+| Long promo with structure | **Chapter tabs** | Text cards alternating with footage | V3 |
+
+### 1.3 Motion language (lock this per project)
+
+Write these down before you open the animation software:
+
+| Decision | Options | Why it matters |
+|---|---|---|
+| **Easing family** | Expo-out (premium), spring (app-like), back-out (playful), in-out (neutral) | Easing is the personality of the motion |
+| **Shape language** | Rounded (friendly), angular (energetic), organic blobs (soft), geometric grid (technical) | Keeps morphs and icons coherent |
+| **Transition type** | Morph, mask wipe, push, zoom-through, match cut, whip pan | Limit to 3 types per video |
+| **Camera** | Locked, slow push, parallax, orbit, handheld | Camera movement sets the mood |
+| **Type behavior** | Line mask-slide, word stagger, per-letter, blur-in | Type reveals carry most of the message |
+| **Background** | Flat, mesh gradient, grid, footage, grain | Gradients: slow only |
+| **Rhythm** | Fast and cut-heavy, medium, slow and flowing | Decides durations |
+
+### 1.4 The anti-repetition system
+
+1. Keep an **effect log** (template in `motion-project-templates.md`). Record signature technique, easing, shape language and transition for each project.
+2. **Rule:** a new project must differ from the previous one in at least 3 of the 7 decisions in table 1.3.
+3. **Budget per video:** 1 signature technique, 2 to 3 supporting, 3 transition types maximum, 1 background style.
+4. **Test before adding an effect:** "If I remove this, does the message get weaker?" If no, remove it.
+5. **Rotate sources**: study motion from film titles, UI design, print and typography, not only from other motion reels.
+
+---
+
+## Part 2. What Your Reference Videos Measure Out To
+
+### 2.1 Method and limits
+
+- **Cut detection:** ffmpeg scene-change detection (threshold 0.35).
+- **Audio onsets:** spectral-flux peak detection on mono audio.
+- **Visual events:** peaks in frame-to-frame pixel difference.
+- **Alignment:** share of visual events that fall within 80 ms of an audio onset.
+- **Limits:** these are automated estimates on WhatsApp-compressed files. Tempo estimates (BPM) from this method are unreliable on music with soft rhythm, so I do not rely on them. Alignment numbers are indicative, not exact. Treat them as hints on where to look.
+
+### 2.2 Results
+
+| Video | Length | Hard cuts | Cuts per 10 s | Audio track | Visual/audio alignment (<80 ms) |
+|---|---|---|---|---|---|
+| V1 AI launch | 31 s | 7 | 2.2 | Yes | 23% (13 visual events) |
+| V2 App UI | 11 s | 0 | 0 | Yes | 67% (3 events) |
+| V3 HowDo | 44 s | 3 | 0.7 | Yes | 27% (15 events) |
+| V4 Kinetic text | 8 s | 0 | 0 | **Silent** | n/a |
+| V5 Letters | 5 s | 0 | 0 | Yes | 100% (2 events) |
+| V6 Web Rank | 19 s | 6 | 3.1 | Yes | 18% (11 events) |
+| V7 Green brand | 47 s | 4 | 0.8 | Yes | 21% (14 events) |
+| V8 Gradients | 25 s | 6 | 2.4 | **Silent** | n/a |
+
+### 2.3 What to take from the numbers
+
+- **Short, UI-focused pieces (V2, V5) sync tightly to audio.** The few strong visual moments land on sound hits. Sound design is part of the motion, not an afterthought.
+- **Longer pieces (V1, V3, V6, V7) mostly do not hit-sync every move.** They use music as a bed with some key hits. Low alignment tells you that you do not need to sync everything. Sync the 3 to 5 moments that matter.
+- **Two of the eight (V4, V8) have no audio.** They are likely made for silent autoplay feeds, so the motion itself has to carry the rhythm. If your video will be seen muted, design for that.
+- **Cuts are rare.** The reference set averages about 1.4 hard cuts per 10 seconds, and three pieces have none. Most scene changes are made by morphing, wiping or zooming.
+- **Vertical pieces cut more** (V6: 3.1 and V8: 2.4 per 10 s) than landscape brand pieces (V3: 0.7, V7: 0.8). This suggests vertical content is paced faster. This is a small sample of 8 videos, so treat it as a pattern to test, not a rule.
+
+### 2.4 Frame-level observations
+
+**V2 folder-to-checklist opening (first 3.4 s), measured at 30 fps by tracking the object's bounding box:**
+
+| Time | What happens | Reading |
+|---|---|---|
+| 0.0 to 0.3 s | Flat blue folder, cursor arrives from lower right, click, folder blurs into a frosted-glass version | Fast style swap on click |
+| 0.3 to 1.2 s | Yellow note card rises out of the folder and the whole object grows steadily | About 0.9 s ease-out growth |
+| 1.2 to 1.5 s | Object reaches its maximum height | Brief peak |
+| 1.5 to 1.9 s | Object compresses and settles to a smaller, resting size | Settle after a small overshoot, about 0.3 to 0.4 s |
+| 1.9 to 3.0 s | Card holds still while the hand cursor swirls away left with motion blur | Deliberate pause (about 1 s of near-stillness) |
+| 3.0 to 3.4 s | Cursor returns, click, folder drops away, checklist expands | Second morph |
+
+Takeaways: a **hold of about 1 second** between morphs makes the next one feel intentional. The overshoot-and-settle after growth is about 0.3 s. The cursor is blurred when moving fast.
+
+**V5 text sequence (5.2 s):**
+- The first word starts with **tight letter-spacing that opens up** over roughly the first second, then sits stable.
+- The second word joins with a **small glyph flying in** to form "Creative & Smooth".
+- Later, glyphs **scatter and regroup** into new word shapes with heavy motion blur.
+- **Orientation:** the file has no rotation tag and its content is drawn sideways inside a portrait canvas, so it plays sideways on a phone. If you reuse this idea, create it upright.
+
+---
+
+## Part 3. Fundamentals, with Numbers
+
+### 3.1 Easing quick table
+
+| Use | Easing | cubic-bezier |
+|---|---|---|
+| Entrance (default) | Ease-out | `0.0, 0.0, 0.2, 1` |
+| Exit | Ease-in | `0.4, 0.0, 1, 1` |
+| Move across screen | In-out | `0.4, 0.0, 0.2, 1` |
+| Premium reveal | Expo-out | `0.16, 1, 0.3, 1` |
+| Soft deceleration | Quart-out | `0.25, 1, 0.5, 1` |
+| Playful pop | Back-out | `0.34, 1.56, 0.64, 1` |
+| UI object settle | Spring (damping about 0.7, light overshoot) | physics, not bezier |
+
+### 3.2 Durations at 30 fps
+
+| Action | Seconds | Frames |
+|---|---|---|
+| Icon pop or toggle | 0.15 to 0.3 | 5 to 9 |
+| Element entrance | 0.3 to 0.6 | 9 to 18 |
+| Text line reveal | 0.4 to 0.8 | 12 to 24 |
+| Morph between states | 0.4 to 0.9 | 12 to 27 |
+| Scene transition | 0.4 to 0.8 | 12 to 24 |
+| Logo reveal | 1.0 to 2.0 | 30 to 60 |
+| Stagger step | 0.05 to 0.12 | 2 to 4 |
+| Hold between morphs | 0.7 to 1.2 | 20 to 36 |
+| Final logo hold | 1.5 to 3.0 | 45 to 90 |
+
+The V2 measurement above supports the morph duration and the hold range. The other values are standard practice rather than measured from your files.
+
+### 3.3 Reading time
+
+About 3 words per second is comfortable. A headline of N words needs about N/3 seconds of full visibility after its animation completes, plus about 0.5 s.
+
+### 3.4 Shape and icon rules
+
+- One stroke weight, one corner radius family, one style (line, filled or duotone) per video.
+- Animate meaning: bell rings, lock clicks, graph climbs, paper plane flies.
+- Trim paths for line icons, scale-with-overshoot for filled icons, morph for state changes.
+- Shape psychology: circle (friendly, complete), square (stable), triangle (direction, energy), blob (organic), line (connection).
+
+### 3.5 Typography rules
+
+- Two typefaces maximum. Change weight and italic for variety instead of adding fonts (V6 does this well).
+- Per-letter animation only on 1 to 3 short words.
+- Ghost text (large, low-contrast word behind) adds depth cheaply (V6, V7).
+- Highlight key words with color, weight or a marker box (V4, V7).
+- Safe zone: keep key text in the central 70% of vertical frames.
+
+### 3.6 Color and light
+
+- 3 to 5 colors. One accent reserved for what matters.
+- Gradients move slowly (8 to 15 s loops). Add 2 to 5% grain to prevent banding.
+- Glass look: backdrop blur, 1 px light edge, soft inner highlight, soft shadow.
+
+---
+
+## Part 4. Effects Catalogue with Use / Avoid Rules
+
+### 4.1 Transitions
+
+| Transition | Use when | Avoid when |
+|---|---|---|
+| Morph (object becomes next object) | Feature walkthroughs, app states | Shapes are unrelated |
+| Match cut | Two scenes share a shape | Nothing in common |
+| Shape or mask wipe | Brand shape can carry the move | Already used several wipes |
+| Push or slide | Steps in a sequence | Emotional, slow content |
+| Zoom-through | Overview to detail | Rapid cutting |
+| Whip pan | Energetic social ads | Premium calm brands |
+| Cross dissolve | Time passing, emotion | Fast promos |
+| Cut on action | Fast pace | Rarely wrong |
+| Glitch | Techy or gaming | Finance, wellness, luxury |
+| Liquid or ink morph | Beauty, music, creative | Corporate data |
+| Light leak or flash | Cinematic, events | App UI |
+
+### 4.2 Reveals and text
+
+Mask reveal (default), scale and fade (subtle), trim-path draw-on (lines, handwriting), stagger cascade (lists), blur-to-focus (cinematic), light sweep (logos, once only), typewriter (code and AI chat), scramble (tech, once), kinetic flow (taglines).
+
+### 4.3 Backgrounds
+
+Flat plus grain (safe), animated mesh gradient (modern SaaS, keep slow), aurora blobs (soft, AI), grid (technical), particles (sparse only), footage with dark overlay (human stories).
+
+### 4.4 Overused effects (use rarely)
+
+Glitch, heavy lens flare, constant bounce or elastic, spinning transitions, particles everywhere, neon on everything, extreme 3D extrusion, zoom punches every 2 seconds.
+
+---
+
+## Part 5. Tools: Verified Facts
+
+> Verified through web search in October 2026. Features and licenses change, so check the linked source before committing.
+
+### 5.1 Video and motion production
+
+| Tool | Use for | Notes |
+|---|---|---|
+| **After Effects** | 2D/2.5D motion graphics, expressions, plugins | Industry standard |
+| **Premiere Pro / DaVinci Resolve** | Editing, color, audio | Final assembly |
+| **Cinema 4D / Blender** | Real 3D | Product renders, 3D logos |
+| **Cavalry** | Procedural 2D | Patterns, data-driven motion |
+| **Rive, Lottie** | Interactive and lightweight in-app animation | Export Lottie JSON from After Effects |
+| **Figma, Jitter** | Quick UI animation | Social clips, app promos |
+
+### 5.2 Code-based video
+
+| Tool | Verified facts | Source |
+|---|---|---|
+| **Remotion** | Creates videos with React. Free license covers individuals and companies of up to 3 people, including commercial use. A Company License is required for teams of 4 or more. An "Automators" license (about $0.01 per render, $100 per month minimum) applies to automated pipelines, prompt-to-video apps and embedding the Player. Pricing can change, so confirm on the official page before launch. | remotion.dev/docs/pricing |
+| **GSAP** | Timeline-based animation. Excellent for planning sequences even if you finish in After Effects. | gsap.com |
+| **Three.js / React Three Fiber** | 3D scenes. Record the render or capture frames. | threejs.org |
+| **Motion (Framer Motion)** | React UI animation, spring physics | motion.dev |
+
+### 5.3 Libraries from your original list, now checked
+
+| Library | What I verified | Notes for video use |
+|---|---|---|
+| **Skiper UI** (skiper-ui.com) | A collection of animated components for Next.js built on shadcn/ui. Includes animated numbers (Number Flow plus Framer Motion), text scroll animation, mouse-follow animations, animated icons and CSS-only link animations. It is a mix of free and Pro components. Free use requires attribution to Skiper UI. Many components are described by the author as recreations of existing designs. | Good as motion references and for capturing UI plates. Check each component's license and attribution before shipping. |
+| **Unlumen UI** (ui.unlumen.com, also on 21st.dev) | A shadcn registry with 132 components listed on its site. Examples: gradient-sweep text reveal, animated dock with magnification, 3D tilt wrapper, gravity-stars background, animated file tree, count-up, per-character subtitle reveal. Some components are MIT licensed; others show no license on 21st.dev. Installing from 21st.dev needs an API key. | Check license per component. |
+| **OriginKit** (originkit.dev) | A free library of animated components (its plugin page cites 250+ in the library). It offers an MCP server and needs a free API key from the site. | Useful for text and particle effects. Verify terms on the site. |
+| **Liquid Glass (ybouane)** | `@ybouane/liquidglass` on npm. WebGL shader that applies refraction, blur, chromatic aberration and lighting to HTML elements. Layered glass is supported. | Good for glass UI plates. Capture by screen recording. |
+| **liquidGL** | `liquid-gl` on npm. Ultra-light WebGL glass for fixed-position elements. Its docs list real-time refraction of video and text animations as supported, and CSS animations as not supported. GSAP-ready. | Check the CSS-animation limitation before planning a capture. |
+| **liquid-glass-js (dashersw)** | WebGL, Apple-inspired glass with container and button classes. Uses html2canvas for page sampling. | Heavier setup; browser demo oriented. |
+| **React Bits, Aceternity UI, Magic UI, SmoothUI, RetroUI, Neobrutalism, 8bitcn** | Described in the first guide from my own knowledge and not re-verified in this pass. | Verify on each site. |
+| **Bencho.dev, Componentary, ThreeUI, Animmasterlin.dev, Vengeance UI** | **Not verified.** My searches did not return reliable pages for these. | Open the sites directly. |
+| **SuperDesign** | **Not verified.** I previously said it is an AI design tool. I did not confirm that in this pass. | Check the site. |
+| **Shader Gradient** | **Not re-verified** in this pass. | Check the site. |
+
+**Practical way to use web component libraries for video:** build the effect in a browser, record it at 60 fps and import it into After Effects or Premiere as a layer. Check the library license for commercial use and attribution requirements before publishing.
+
+---
+
+## Part 6. Workflow
+
+1. **Brief** (template): goal, audience, platform, length, CTA, brand rules.
+2. **Motion language** (table 1.3).
+3. **Script**: short lines, about 3 words per second reading speed.
+4. **Style frames**: 3 to 5 still key frames approved before animating.
+5. **Storyboard and animatic**: rough timing with audio.
+6. **Block**: key poses and positions only.
+7. **Ease**: shape the curves in the graph editor.
+8. **Secondary motion**: overlap, follow-through, blur.
+9. **Sound design**: hits on the 3 to 5 key moments, ambient bed.
+10. **Finish**: color, grain, safe-margin check.
+11. **Review**: phone, muted, full-screen.
+12. **Export**: per platform.
+
+### Export cheat sheet
+
+| Need | Format |
+|---|---|
+| Social and web | H.264 MP4 |
+| Master or editing handoff | ProRes 422 or 4444 |
+| Transparent | ProRes 4444 with alpha, or WebM with alpha |
+| In-app animation | Lottie JSON or Rive |
+| Vertical 9:16 | 1080 x 1920 |
+| Landscape 16:9 | 1920 x 1080 or 3840 x 2160 |
+| Square 1:1 | 1080 x 1080 |
+
+App Store preview specs change often. Check the current Apple and Google requirements before exporting.
+
+### Polish checklist
+
+- [ ] Every entrance eased, exits faster than entrances
+- [ ] One focal point at any moment
+- [ ] Holds of 0.7 to 1.2 s between morphs
+- [ ] Text visible long enough to read
+- [ ] Safe margins respected
+- [ ] 3 to 5 sound hits aligned to key visuals
+- [ ] Palette and type consistent
+- [ ] Muted version still communicates
+- [ ] Tested on a phone
+- [ ] Logo hold at least 1.5 s
+
+---
+
+## Part 7. Honest Limits
+
+- The measurements come from compressed files and automated detection. They suggest patterns; they do not replace frame-by-frame study in your own timeline.
+- Library facts were checked in October 2026 and may change.
+- The rules of thumb for durations and easing are standard practice, not tuned to your brand. They become precise only when applied to your specific project.
+
+
+
+# Motion Code Starters
+
+Copy-and-adapt snippets for the techniques found in your references.
+
+> **Testing note:** I could not install or run Remotion, GSAP or After Effects in my environment (no network access, no Adobe software). These snippets use well-known, stable APIs and are written carefully, but **treat them as starting points and test them** in your own setup. If one errors, send me the error message and I will fix it.
+
+Contents
+1. Easing reference (JavaScript)
+2. After Effects expressions
+3. GSAP timelines
+4. Remotion compositions
+5. Recipes mapped to your reference videos
+
+---
+
+## 1. Easing Reference (JavaScript)
+
+```js
+// All functions take t in [0,1] and return eased progress in [0,1] (back/elastic can overshoot)
+export const ease = {
+  linear:    t => t,
+  outCubic:  t => 1 - Math.pow(1 - t, 3),
+  outQuart:  t => 1 - Math.pow(1 - t, 4),
+  outExpo:   t => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  inCubic:   t => t * t * t,
+  inOutCubic:t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  outBack:   (t, s = 1.70158) => 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2),
+};
+
+// Map a frame range to eased progress
+export const progress = (frame, start, end, fn = ease.outCubic) => {
+  const t = Math.min(1, Math.max(0, (frame - start) / (end - start)));
+  return fn(t);
+};
+```
+
+---
+
+## 2. After Effects Expressions
+
+Paste into the property's expression field (Alt/Option-click the stopwatch).
+
+### 2.1 Overshoot bounce after a keyframe
+Works on scale or position after the last keyframe. Tune the three numbers at the top.
+
+```js
+amp = 0.1;     // overshoot strength (higher = bouncier)
+freq = 2.0;    // oscillations per second
+decay = 5.0;   // how quickly it settles (higher = faster)
+
+n = 0;
+if (numKeys > 0) {
+  n = nearestKey(time).index;
+  if (key(n).time > time) n--;
+}
+if (n == 0) {
+  t = 0;
+} else {
+  t = time - key(n).time;
+}
+if (n > 0) {
+  v = velocityAtTime(key(n).time - thisComp.frameDuration / 10);
+  value + v * amp * Math.sin(freq * t * 2 * Math.PI) / Math.exp(decay * t);
+} else {
+  value;
+}
+```
+
+### 2.2 Stagger by layer index (opacity or position offset)
+Select many layers, apply to opacity. Each layer starts a little later than the one above.
+
+```js
+stepSec = 0.08;                       // delay between layers (about 2 to 3 frames at 30 fps)
+start   = 1.0;                        // when the first layer begins
+dur     = 0.5;                        // entrance duration
+t0 = start + (index - 1) * stepSec;
+easeOut(time, t0, t0 + dur, 0, 100);
+```
+
+### 2.3 Slide-up with ease (for position)
+```js
+start = 0.5; dur = 0.6; dist = 60;     // pixels to travel
+y = easeOut(time, start, start + dur, dist, 0);
+value + [0, y];
+```
+
+### 2.4 Curved cursor path (quadratic bezier)
+Apply to the cursor layer's position. Never move a cursor in a straight line.
+
+```js
+p0 = [200, 800];     // start
+p1 = [600, 700];     // control point (pulls the curve)
+p2 = [900, 400];     // end
+tStart = 1.0; tEnd = 2.2;
+
+u = easeOut(time, tStart, tEnd, 0, 1);   // eased 0..1
+a = (1 - u) * (1 - u);
+b = 2 * (1 - u) * u;
+c = u * u;
+[ a*p0[0] + b*p1[0] + c*p2[0],
+  a*p0[1] + b*p1[1] + c*p2[1] ];
+```
+
+### 2.5 Click pulse (scale dip) at a given time
+```js
+clickT = 2.2;                            // time of the click in seconds
+d = time - clickT;
+s = (d >= 0 && d < 0.2) ? 100 - 15 * Math.sin(Math.PI * d / 0.2) : 100;
+[s, s];
+```
+
+### 2.6 Count-up number (Source Text)
+```js
+start = 1.0; dur = 1.2; from = 0; to = 10;
+v = Math.round(easeOut(time, start, start + dur, from, to));
+v + "x better";
+```
+
+### 2.7 Slow constant push-in (scale)
+```js
+dur = thisComp.duration;
+s = linear(time, 0, dur, 100, 104);
+[s, s];
+```
+
+### 2.8 Loop a keyframed animation
+```js
+loopOut("cycle");     // repeats the keyframed segment
+```
+
+### 2.9 Gentle float (loop-free)
+```js
+wiggle(0.5, 8);       // 0.5 times per second, 8 pixel amplitude. Apply to position.
+```
+
+### 2.10 Slow gradient drift (position of a blurred blob)
+```js
+loopTime = 12;                                     // seconds per loop
+a = (time % loopTime) / loopTime * 2 * Math.PI;
+value + [Math.cos(a) * 120, Math.sin(a) * 80];
+```
+
+Tip: shape the speed curve in the **Graph Editor** after applying keyframes. Ease-out entrances should start steep and end with a long gentle tail.
+
+---
+
+## 3. GSAP Timelines
+
+No plugin required for these. They plan sequences well and can be screen-recorded to video.
+
+### 3.1 Mask-style line reveal with stagger
+
+```html
+<div class="line"><span>Give your team</span></div>
+<div class="line"><span>superpowers</span></div>
+
+<style>
+  .line { overflow: hidden; display: block; }       /* the mask */
+  .line span { display: inline-block; transform: translateY(110%); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+  const tl = gsap.timeline({ defaults: { ease: "expo.out", duration: 0.7 } });
+  tl.to(".line span", { y: 0, stagger: 0.1 })
+    .to({}, { duration: 1.2 })                       // hold so the viewer can read
+    .to(".line span", { y: "-110%", ease: "power2.in", duration: 0.4, stagger: 0.06 });
+</script>
+```
+
+### 3.2 Morph hold pattern (state A to B, pause, B to C)
+
+```js
+const tl = gsap.timeline();
+tl.to("#card", { scale: 1.15, duration: 0.9, ease: "power3.out" })   // grow
+  .to("#card", { scale: 1.0,  duration: 0.35, ease: "power2.inOut" }) // settle
+  .to({}, { duration: 1.0 })                                          // hold about 1 s
+  .to("#card", { height: 320, borderRadius: 24, duration: 0.6, ease: "power3.inOut" });
+```
+
+### 3.3 Icon pop with overshoot and draw-on line
+```js
+gsap.fromTo(".icon", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(1.7)" });
+
+// SVG path draw-on (works without plugins using stroke-dasharray)
+const path = document.querySelector("#underline");
+const len = path.getTotalLength();
+gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+gsap.to(path, { strokeDashoffset: 0, duration: 0.8, ease: "power2.out" });
+```
+
+### 3.4 Slowly drifting gradient blobs
+```js
+gsap.to(".blob-1", { x: 120, y: -60, duration: 12, ease: "sine.inOut", repeat: -1, yoyo: true });
+gsap.to(".blob-2", { x: -100, y: 80, duration: 15, ease: "sine.inOut", repeat: -1, yoyo: true });
+```
+Use large blurred shapes (`filter: blur(80px)`) and a grain overlay.
+
+### 3.5 Recording a GSAP animation for video
+Screen-record the browser at 60 fps (or use a headless capture tool) and import into your editor. Keep animations time-based so frame rates do not change speed. Check licensing terms for any GSAP plugin you use commercially.
+
+---
+
+## 4. Remotion Compositions
+
+Remotion renders React components frame by frame. These use its core APIs: `useCurrentFrame`, `useVideoConfig`, `interpolate`, `spring`, `Easing`, `Sequence`, `AbsoluteFill`.
+
+### 4.1 Project registration (`src/Root.tsx`)
+
+```tsx
+import { Composition } from "remotion";
+import { Tagline } from "./Tagline";
+
+export const RemotionRoot = () => (
+  <Composition
+    id="Tagline"
+    component={Tagline}
+    durationInFrames={240}   // 8 s at 30 fps
+    fps={30}
+    width={1920}
+    height={1080}
+  />
+);
+```
+
+### 4.2 Kinetic tagline with mask reveal, hold and exit (`src/Tagline.tsx`)
+
+```tsx
+import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
+
+const words = ["Give", "your", "team", "superpowers"];
+
+const Word: React.FC<{ text: string; index: number }> = ({ text, index }) => {
+  const frame = useCurrentFrame();
+  const start = 10 + index * 4;           // stagger: 4 frames per word
+  const inEnd = start + 18;               // 18 frames entrance
+  const outStart = 150 + index * 2;       // hold, then exit
+  const outEnd = outStart + 12;
+
+  const enter = interpolate(frame, [start, inEnd], [110, 0], {
+    easing: Easing.out(Easing.exp),
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const exit = interpolate(frame, [outStart, outEnd], [0, -110], {
+    easing: Easing.in(Easing.cubic),
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <span style={{ display: "inline-block", overflow: "hidden", marginRight: 24 }}>
+      <span style={{ display: "inline-block", transform: `translateY(${enter + exit}%)` }}>
+        {text}
+      </span>
+    </span>
+  );
+};
+
+export const Tagline: React.FC = () => (
+  <AbsoluteFill
+    style={{
+      background: "#f7f6f8",
+      justifyContent: "center",
+      alignItems: "center",
+      fontFamily: "Inter, Helvetica, Arial, sans-serif",
+      fontSize: 120,
+      fontWeight: 700,
+      color: "#1b1b1f",
+    }}
+  >
+    <div>
+      {words.map((w, i) => (
+        <Word key={w} text={w} index={i} />
+      ))}
+    </div>
+  </AbsoluteFill>
+);
+```
+
+### 4.3 Spring pop for icons or cards
+
+```tsx
+import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+
+export const PopCard: React.FC<{ delay?: number }> = ({ delay = 0 }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const s = spring({
+    frame: frame - delay,
+    fps,
+    config: { damping: 12, stiffness: 120 },   // lower damping = more bounce
+  });
+
+  return (
+    <div
+      style={{
+        width: 400, height: 240, borderRadius: 32, background: "#fff",
+        boxShadow: "0 30px 60px rgba(0,0,0,.12)",
+        transform: `scale(${s})`,
+        opacity: Math.min(1, s * 2),
+      }}
+    />
+  );
+};
+```
+
+### 4.4 Scene sequencing with holds
+
+```tsx
+import { Sequence } from "remotion";
+
+export const Promo: React.FC = () => (
+  <>
+    <Sequence from={0} durationInFrames={90}>   <SceneHook />    </Sequence>
+    <Sequence from={90} durationInFrames={150}> <SceneFeature />  </Sequence>
+    <Sequence from={240} durationInFrames={90}> <SceneLogo />     </Sequence>
+  </>
+);
+```
+
+Render from the terminal after setup:
+
+```bash
+npx remotion render Tagline out/tagline.mp4
+```
+
+**License reminder:** Remotion's free license covers individuals and companies of up to 3 people, including commercial use. Larger teams need a company license. Confirm on remotion.dev/docs/pricing.
+
+---
+
+## 5. Recipes Mapped to Your References
+
+| Reference | Technique | Where to look in this file |
+|---|---|---|
+| V2 object morphing and cursor | Morph hold pattern, curved cursor, click pulse | 2.4, 2.5, 3.2 |
+| V4 kinetic tagline and counter | Mask reveal, count-up | 3.1, 4.2, 2.6 |
+| V5 letter animation | Per-letter stagger, tracking animation | Use AE Text Animator with Range Selector, or split spans and use 3.1 per letter |
+| V1 line draw and fan | Draw-on path, stagger of icons | 3.3, 2.2 |
+| V7 carrier shape | Spring pop, loop | 4.3, 2.8 |
+| V8 drifting gradients | Slow drift | 2.10, 3.4 |
+| V6 starburst and ghost text | Scale-with-overshoot, low-opacity large text | 2.1, 3.3 |
+| V3 chapter tabs | Sequence + a progress indicator driven by the current scene | 4.4 |
+
+### Suggested learning order
+1. Easing and graph editor (2.3, 2.1)
+2. Stagger (2.2)
+3. Morph with hold (3.2)
+4. Cursor path and click (2.4, 2.5)
+5. Sequencing a full 30 s piece (4.4)
+
+
+
+# Motion Project Templates
+
+Copy this file for each project and fill in the blanks. Sections: 1 Brief, 2 Motion Language, 3 Shot-by-Shot Timing Sheet, 4 Motion Style Guide, 5 Effect Log, 6 Review Checklist.
+
+---
+
+## 1. Brief
+
+| Field | Your answer |
+|---|---|
+| Project name | |
+| Client / brand | |
+| Goal (one sentence) | |
+| Audience | |
+| Platform(s) | |
+| Length | |
+| Aspect ratios needed | |
+| Will it be seen muted? (yes / no / both) | |
+| Call to action | |
+| Brand assets (logo, fonts, colors) | |
+| References (links or file names) | |
+| Deadline | |
+| Software | |
+
+---
+
+## 2. Motion Language (fill before animating)
+
+| Decision | Choice | Differs from last project? |
+|---|---|---|
+| Tone (one word) | | |
+| Signature technique | | |
+| Supporting technique 1 | | |
+| Supporting technique 2 | | |
+| Easing family | | |
+| Shape language | | |
+| Transition types (max 3) | | |
+| Camera behavior | | |
+| Type behavior | | |
+| Background style | | |
+| Rhythm (fast / medium / slow) | | |
+| Palette (3 to 5 hex) | | |
+
+**Rule:** at least 3 rows must differ from the previous project.
+
+---
+
+## 3. Shot-by-Shot Timing Sheet
+
+Assume 30 fps. Frames = seconds x 30.
+
+| # | Time in | Time out | Frames | On-screen text / content | Motion in | Hold | Motion out | Easing | Sound | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 0:00 | 0:03 | 90 | HOOK: | | | | | | |
+| 2 | | | | | | | | | | |
+| 3 | | | | | | | | | | |
+| 4 | | | | | | | | | | |
+| 5 | | | | | | | | | | |
+| 6 | | | | | | | | | | |
+| 7 | | | | | | | | | | |
+| 8 | | | | | | | | | | |
+| 9 | | | | | | | | | | CTA |
+| 10 | | | | | | | | | | LOGO HOLD (1.5 s+) |
+
+### Example row (filled)
+
+| # | Time in | Time out | Frames | Content | Motion in | Hold | Motion out | Easing | Sound |
+|---|---|---|---|---|---|---|---|---|---|
+| 2 | 0:03 | 0:08 | 150 | "Give your team superpowers" | Line mask slide-up, 4-frame stagger per word, 18 frames | 1.2 s | Slide-up exit, 12 frames | Expo-out in, cubic-in out | Soft riser into a pop at word 4 |
+
+### Pacing guide
+
+| Video type | Visual change every |
+|---|---|
+| Energetic social | 1.5 to 3 s |
+| Product or SaaS | 2 to 4 s |
+| Premium, calm | 4 to 6 s |
+
+### Sound hit plan (pick 3 to 5)
+
+| Time | Visual moment | Sound |
+|---|---|---|
+| | | |
+| | | |
+| | | |
+
+---
+
+## 4. Motion Style Guide (one page per brand)
+
+**Brand:** ____________
+
+### Principles (pick 3 words)
+e.g. "Confident, smooth, precise"
+1. ____
+2. ____
+3. ____
+
+### Timing
+
+| Type | Duration | Easing |
+|---|---|---|
+| Micro (icon, toggle) | ____ ms | ____ |
+| Entrance | ____ ms | ____ |
+| Exit | ____ ms | ____ |
+| Scene transition | ____ ms | ____ |
+| Hero reveal | ____ ms | ____ |
+| Stagger step | ____ ms | ____ |
+
+### Shapes and icons
+- Corner radius: ____
+- Stroke weight: ____
+- Icon style (line / filled / duotone): ____
+- Signature shape (carrier element): ____
+
+### Type
+- Display font: ____
+- Text font: ____
+- Entrance style: ____
+- Highlight style (color, marker, weight): ____
+
+### Color and backgrounds
+- Primary: ____ Secondary: ____ Accent: ____ Neutral: ____
+- Gradient rules (speed, grain %): ____
+- Glass or shadow rules: ____
+
+### Do and don't
+
+| Do | Don't |
+|---|---|
+| | |
+| | |
+| | |
+
+### Sound
+- Hit style: ____
+- Ambient bed: ____
+- Music mood and tempo: ____
+
+---
+
+## 5. Effect Log
+
+Record every finished project. Review it before starting the next one.
+
+| Date | Project | Signature technique | Easing | Shape language | Transitions used | Background | Result / what to change |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
+| | | | | | | | |
+| | | | | | | | |
+| | | | | | | | |
+| | | | | | | | |
+
+**Next project must avoid repeating:** ____________
+
+---
+
+## 6. Review Checklist
+
+### Design
+- [ ] One focal point at any moment
+- [ ] Palette limited to 3 to 5 colors
+- [ ] Two typefaces maximum
+- [ ] Safe margins respected (center 70% for vertical key text)
+- [ ] Contrast checked against moving backgrounds
+
+### Motion
+- [ ] Entrances eased (ease-out), exits eased (ease-in) and shorter
+- [ ] Stagger offsets small and consistent
+- [ ] Holds of 0.7 to 1.2 s between major changes
+- [ ] No more than 3 transition types
+- [ ] Signature technique appears clearly, not on every shot
+- [ ] Loops return to the first frame
+
+### Message
+- [ ] Hook in the first 3 seconds
+- [ ] Each text block readable (about 3 words per second plus 0.5 s)
+- [ ] CTA clear and held
+- [ ] Logo held 1.5 s or more
+
+### Sound
+- [ ] 3 to 5 key hits aligned to visuals
+- [ ] Voice clear above music
+- [ ] Muted version still works (if needed)
+
+### Delivery
+- [ ] Watched on a phone, full screen
+- [ ] Exported for each platform and ratio
+- [ ] Filenames and versions labeled
+- [ ] Licenses checked for fonts, music, footage, libraries
+
+
+
+# Motion Reference Analysis
+
+A breakdown of the 8 videos and 3 stills you uploaded: what each one does, which techniques it uses, and how to reuse the ideas without copying.
+
+**How I analyzed them:** I sampled 12 evenly spaced frames from each video and measured hard cuts. I can't hear audio or see exact easing curves, so timing and easing notes are inferred from the frames and are marked as such. Treat the "recipe" sections as starting points to adjust by eye.
+
+---
+
+## 1. At a Glance
+
+| # | Video | Format | Length | Hard cuts | Style in one line |
+|---|---|---|---|---|---|
+| V1 | AI product launch ("too many signals" to "One place to Discover.") | 16:9 | 31 s | 7 | Dark to light story, abstract line art into real UI and nature |
+| V2 | App UI micro-animations (to-do card, toggle, book widget) | 1:1 | 11 s | 0 | One continuous transforming object, animated cursor |
+| V3 | "HowDo" promo template (Intro / Problem / Use Case / CTA) | 4:3 | 44 s | 3 | Kinetic text + stock footage + device mockups, in a tabbed frame |
+| V4 | Kinetic text: "Give your team superpowers" | 16:9 | 8 s | 0 | Gradient text, blur blobs, concentric pill ends on a button |
+| V5 | Text transitions: "Creative & Smooth Motion" | 9:16 | 5 s | 0 | Typography as the only subject, shape-shifting letters |
+| V6 | Web Rank Studio: "Motion design is strategic" | 9:16 | 19 s | 6 | Serif + cutout objects + purple, a poster-style explainer |
+| V7 | Green brand video: "Turning ideas into experiences" | 16:9 | 47 s | 4 | Organic gradients, flower mascot, UI cards, stock footage |
+| V8 | Social carousel as video: gradient palettes | 9:16 | 25 s | 6 | Gradient swatches with palette codes, clean sans-serif |
+
+**Pacing observation:** V2, V4 and V5 have zero hard cuts. They are continuous, with objects transforming into each other. The longer videos (V1, V3, V7) use only 3 to 7 hard cuts across 30 to 47 seconds, because the scene changes are made by motion (wipes, morphs, zooms) rather than cuts. This is what gives them that "smooth" feeling.
+
+---
+
+## 2. Video-by-Video Breakdown
+
+### V1: AI product launch (31 s, 16:9)
+
+**What happens (from the sampled frames):**
+1. Black screen with scattered symbols (`/`, `<`, `>`, `*`) and thin guide lines around the words "too many signals". Chaos.
+2. A single wavy line with a glowing blue point splits into branches. Each branch ends at a small labeled icon (messages, files, meeting, tomorrow).
+3. Concentric blue rings expand with the word "connected." in the center. This is the turning point from chaos to calm.
+4. A light, airy search UI ("What will we build?") over a beach backdrop, with a prompt bar.
+5. A circular fan of poster cards radiating from a blue send button.
+6. A code editor UI on a forest backdrop, then a close-up with green check marks and a red error line being fixed.
+7. A node map ("Clients", "Feedback", "Reports") that grows into a tree with a trunk, then nature footage with "One place to Discover."
+
+**Techniques used:**
+- **Problem to solution color story:** black (problem) turns to bright blue and white (solution).
+- **Line draw and branching** (trim paths) to show connections.
+- **Radial fan layout** for showing "many results".
+- **Real UI in a calm nature backdrop** to humanize a technical product.
+- **Check-mark list animation** to show progress and correctness.
+- **Metaphor:** data map becomes a literal tree.
+
+**Recipe:**
+- Start dense and dark, resolve into light. Use one blue as the "solution" color.
+- Connecting lines: draw over about 1 s with ease-out, then label icons pop in with a 3 to 4 frame stagger.
+- Keep one "turning point" moment (the rings) that is visually the biggest in the video.
+
+**Use for:** AI tools, productivity apps, anything with a "we simplify chaos" story.
+
+---
+
+### V2: App UI micro-animations (11 s, 1:1)
+
+**What happens:**
+1. A frosted-glass folder with a cursor. The cursor "opens" the folder and a yellow-topped note card (**Things to do today**) slides out.
+2. The card shrinks into a clean checklist. Items get checked off one by one with a yellow highlighter stroke across each task.
+3. Cut to dark: a "Let's start" pill with a blue arrow button. The arrow button morphs into a toggle.
+4. The pill morphs into an orange book widget (**Atomic Habits, 49% complete**), then expands into a fuller card with a weekly reading tracker, and finally compresses into a book app icon.
+
+**Techniques used:**
+- **One object that keeps transforming** (folder to note to checklist, pill to widget to icon). No scene changes at all.
+- **Animated hand cursors** with a click interaction. The cursor changes style (pointer, grabbing hand).
+- **Highlighter-style strike marks** on completed tasks (hand-drawn trim path).
+- **Glass and blur** on the folder. Soft shadows.
+- **Background swap** from white to near-black to make a color pop (orange on dark).
+- **Dynamic Island-style morphs** between sizes and shapes.
+
+**Recipe:**
+- Keep every shape in the sequence rounded with the same corner radius family so morphs look natural.
+- Morph duration about 0.4 to 0.7 s, ease-in-out with a tiny overshoot on arrival.
+- The cursor should arrive slightly *before* the click and use a curved path, never a straight line.
+
+**Use for:** app previews, feature highlights, onboarding videos. Good template for "one screen, many states".
+
+---
+
+### V3: "HowDo" promo template (44 s, 4:3)
+
+**What happens:**
+- The whole video sits inside a frame with a header (logo) and four labeled tabs at the bottom: **Intro, Problem, Use Case, Call to Action**. The active tab highlights as the video progresses.
+- Intro: the brand name over a phone mockup with floating 3D-style icons.
+- Problem: short text lines on a white card with a soft purple wave at the bottom ("there's something / exciting to figure out / but find the solution"), plus a ring of image tiles orbiting.
+- Use case: a monitor mockup, a person working by a window, hands holding a phone, a product with a QR code, a phone showing a product page.
+- CTA: "Learn it" text, then the logo over clouds.
+
+**Techniques used:**
+- **Chapter tabs as a progress UI.** Tells viewers where they are and gives rhythm.
+- **Kinetic text on clean cards:** a few words at a time, with a light wave at the bottom as ambient motion.
+- **Orbiting ring of images** to suggest "lots of content".
+- **Stock footage + device mockups** alternating with text cards (visual rest).
+- **Soft purple to pink gradient** as the brand wrapper.
+
+**Recipe:**
+- Alternate: text card, footage, text card, UI mockup. Never two text cards in a row for long.
+- Text lines should appear 2 to 4 words at a time, hold about 1.5 s, and leave with a short blur or slide.
+- The tab bar is a good trick to make a long video feel structured.
+
+**Use for:** explainers, startup promos, social ads with 4-part structure.
+
+---
+
+### V4: Kinetic text, "Give your team superpowers" (8 s, 16:9)
+
+**What happens:**
+1. "Give" appears in pink on a light background with a blurred ring in the corner.
+2. The line extends word by word ("Give your team superpowers") while earlier words slide left and fade, so the active word stays centered.
+3. A cursor underlines "superpowers".
+4. Background flips to white with a purple and blue blur blob: large white bold text ("Help them unlock their potential with").
+5. Concentric rounded pills (purple) pulse behind a small pill that fills in with "9x better" then "10x better".
+
+**Techniques used:**
+- **Marquee-style text flow:** the sentence scrolls as it is built, keeping the newest word centered.
+- **Color gradient on text** (pink to purple) for emphasis.
+- **Blurred color blobs** behind text for depth.
+- **Counter in a pill:** "9x better" to "10x better" (number change as the punchline).
+- **Concentric shapes** as a ripple or pulse around the focal element.
+
+**Recipe:**
+- One idea per screen. Switch background color or style between sentences to reset attention.
+- Number counters: ease-out, and hold the final value for at least 1 s.
+- Keep the text size consistent within a sentence. Change size only between sentences.
+
+**Use for:** taglines, mission statements, opening or closing lines of a brand video.
+
+---
+
+### V5: Text transitions (5 s, 9:16)
+
+**Note (checked):** the file has no rotation tag. Its content is drawn sideways inside a portrait canvas (720 x 1280), so it will play sideways on a phone unless you rotate it. If you reuse this idea, build it upright.
+
+**What happens:**
+- "Creative" appears with compressed letter spacing that opens up.
+- "Creative & Smooth" builds, then letters break from the line.
+- The letters scatter, spin, and arrange into circular and spiral clusters ("Motion" letters form a ring, and "Smooth" forms a swirl).
+- The letters, blurred with motion, converge again and settle into a clean "Motion".
+- Background: soft pink and white blurred gradient.
+
+**Techniques used:**
+- **Per-letter animation:** separate each character, rotate and position along a path.
+- **Motion blur** on fast moves, which sells the speed.
+- **Shape-shifting layout:** straight line to circle to spiral to line.
+- **Letter spacing animation** (tracking) to open and close words.
+- **Simple pink gradient backdrop** so the type does all the work.
+
+**Recipe:**
+- Use per-letter motion for **short words only** (1 to 3 words). On a long sentence it becomes unreadable.
+- Always end on a clear, readable, stable word and hold it.
+- Motion blur on, shutter angle around 180 degrees. Letters need a clean landing pose.
+
+**Use for:** title cards, logo name reveals, reels intros.
+
+---
+
+### V6: Web Rank Studio, "Motion design is strategic" (19 s, 9:16)
+
+**What happens:**
+- "EVER WONDERED?" on a purple label over a brain in orbit.
+- A serif and sans mix: *stick in your mind?* with the brain and a giant ghost word behind.
+- A purple screen with a white starburst shape: "it's no Accident" with a flat-illustrated person slipping next to a caution sign.
+- "Motion Design" with a large eyeball cutout and a purple cursor.
+- "Feelings to your" with a vintage TV and a hand holding a card.
+- "Animated text Captures Eyes instantly" with a smaller eyeball.
+- "Visual metaphors, make complicated concepts clear" with a glowing blue line chart in a dark frame.
+- "this isn't Decoration" with a classical column, then "it's Strategic Movement." with a chess king.
+- End card: **Web Rank Studio**.
+
+**Techniques used:**
+- **Cutout objects as visual metaphors** (brain = memory, eye = attention, chess king = strategy, column = decoration).
+- **Serif + italic + bold sans mix** with a purple/black/white palette. Looks editorial.
+- **Ghost text** (large faded word behind the main text) for depth.
+- **Starburst shapes** at the corners as energetic accents.
+- **Grid pattern** on solid purple for a technical, designed feel.
+- **Alternating backgrounds** (white, purple, cream) to pace the story.
+- The video is *about* motion design, and it demonstrates the thing it is describing.
+
+**Recipe:**
+- For every phrase, find one object that embodies the idea. Use cutouts with soft shadows.
+- Maximum 2 type styles. Change weight and italic, not font family, for variety.
+- Use the one saturated brand color (purple) on a third of the scenes to keep identity.
+
+**Use for:** vertical social explainers, agency promos, educational reels.
+
+---
+
+### V7: Green brand video (47 s, 16:9)
+
+**What happens:**
+- Dark green gradient backgrounds with a lime accent. A **flower-shaped mascot/icon** (yellow and white) appears throughout, acting as a "spark" character that moves, spins and transforms.
+- "Everything starts with a Spark" with a highlighted pill and cursor.
+- A pill morphs into a ring, a flower, and text ("Turning Ideas into experiences") over a blurred stock footage.
+- A light cream scene with giant ghost text "CLARITY" and a green curved ribbon that frames a photo of a woman with a tablet.
+- A dashboard of floating UI cards (charts, chat, calendar, forms) arranged like a grid.
+- A tall glass shape and a circle with the flower, then "Smart layouts" with a weather card.
+- "All crafted to move", "Because great design isn't just how it looks."
+- End: "Ready to grow?" on a light background.
+
+**Techniques used:**
+- **A recurring mascot/icon** (the flower) as visual glue between scenes and as the thing that triggers transitions.
+- **Highlighted words** in text (lime box behind "Ideas", bold on "crafted").
+- **Curved ribbon as a frame** around an image reveal.
+- **Floating UI card cluster** to show a product's breadth.
+- **Dark / light alternation** (dark green for energy, cream for clarity).
+- **Wireframe/outline flower** as a decorative background shape at the end.
+
+**Recipe:**
+- Invent one small brand element (shape, icon, mascot) and use it as the "carrier" for transitions. It makes the video feel designed as a system.
+- Keep a limited palette: deep green, lime, cream.
+- Use outline vs filled versions of the same shape for variety.
+
+**Use for:** brand identity videos, design agencies, SaaS "who we are" films.
+
+---
+
+### V8: Gradient palette social video (25 s, 9:16)
+
+**What happens:**
+- A light page with a gradient card titled **Creative Gradients** (VOL.01 2025) tilting and then more cards stacking behind it.
+- Full-screen gradient scenes (**Rosé Sunrise**, **Aurora Blossom**, **Jade Horizon**), each with four color swatches and hex codes at left, and the palette name in large white sans-serif.
+- Gradients slowly drift and change shape within each scene.
+- End card: "Thank You For Watching! Save this for your next project" with a creator handle label.
+
+**Techniques used:**
+- **Animated mesh gradients** with grain and a faint grid overlay.
+- **Hex code swatches** as functional content (value for the viewer).
+- **Consistent layout:** small header row at top, palette at left-middle, big title at bottom. Same template for every scene.
+- **Slow drift** rather than fast motion.
+- **Bookmark icon + "Save this"** call to action built for social platforms.
+
+**Recipe:**
+- Template once, swap colors. Easy to produce series content.
+- Gradient animation: slow (8 to 15 s loop), no sudden changes. Add 2 to 4% noise to avoid banding.
+- Always keep the text high-contrast against the gradient (white on saturated, dark on light).
+
+**Use for:** design-resource reels, carousels converted to video, brand color presentations.
+
+---
+
+## 3. Your Three Stills
+
+### Still 1: "It's [shapes] time to [burst] [squiggle] draw"
+A light gray canvas with a selection box around the text, which suggests a **drawing / shape tool tutorial**. Text is mixed with inline graphics: an orange circle, blue square, pink triangle on a thin underline, a blue spiky burst, and a pill containing a multicolor squiggle stroke next to the word "draw".
+
+- **Idea:** replace words with shapes so the graphic becomes part of the sentence.
+- **Animate it:** shapes pop in with scale-overshoot, the squiggle is drawn with trim paths, the burst spins slowly, the underline draws on from left to right.
+- **Note:** gradient fills (orange to yellow, blue to purple) make flat shapes feel modern.
+
+### Still 2: "Thank You, bye!"
+Warm off-white background. Bold black sans "Thank You," next to a hand-lettered coral script "bye!". Fruit stickers (strawberry, banana, orange, chili) sit on colored circles.
+
+- **Idea:** contrast between two type styles, plus sticker-style illustrations for personality.
+- **Animate it:** stickers drop in with squash and stretch, slight rotation wobble, and settle at slightly different angles. The script "bye!" can draw on with a trim path or pop with an overshoot.
+- **Good for:** friendly end cards. Avoid on serious corporate videos.
+
+### Still 3: "portfolio" with creative designer badge
+Large black serif "portfolio" with an inner blur/distortion on some letters, a glass arrow icon with circular text "CREATIVE DESIGNER" around it, small tag pills ("Mobile Design", "Dashboard", "AIGC Design"), and a pink to orange gradient blob on the right.
+
+- **Idea:** luxury editorial mix, with a high-contrast serif, soft gradients and a glass 3D icon.
+- **Animate it:** letters reveal with blur-to-sharp; circular text rotates slowly; glass arrow floats and catches a light sweep; the tag pills slide in with a stagger; the gradient blob drifts.
+- **Good for:** portfolio intros, personal brand reels.
+
+---
+
+## 4. Techniques Found Across the References (and when to use each)
+
+Use these as a menu. Per the earlier guide, choose **one signature technique per video** and don't repeat the same combination in every project.
+
+| Technique | Seen in | Best for | Don't overuse because |
+|---|---|---|---|
+| **One object morphing through states** | V2, V4 | App previews, feature walkthroughs | Needs consistent shape language |
+| **Chaos to order color story** | V1 | Problem/solution launches | Needs a clear turning point |
+| **Per-letter shape-shifting type** | V5 | Short titles and logos | Unreadable on long sentences |
+| **Cutout objects as visual metaphors** | V6 | Explainers, educational reels | Cutouts need consistent lighting/shadow |
+| **Recurring mascot / carrier shape** | V7 | Brand films | Needs a well-designed shape |
+| **Animated mesh gradient backgrounds** | V4, V8, V3 | Modern tech and creative content | Keep slow, keep text contrast |
+| **Chapter tabs / progress UI** | V3 | Long promos | Not needed under 20 s |
+| **Hand cursor with click** | V2, V4, V6, V7 | UI or "interactive" feel | Keep cursor path smooth and curved |
+| **Floating UI card cluster** | V7 | Showing product breadth | Cards need to be legible when static |
+| **Radial fan / orbit of items** | V1, V3 | "Many options/content" | Don't let the center lose focus |
+| **Line draw and branching** | V1 | Connections, networks, flows | Needs clean icon labels |
+| **Ghost text behind main text** | V6, V7 | Depth in typographic scenes | Keep it low contrast |
+| **Highlighter stroke / underline draw** | V2, V4, Still 1 | Emphasis | One per sentence |
+| **Palette swatches + hex codes** | V8 | Design-content reels | Content must be genuinely useful |
+| **Sticker illustrations** | Still 2 | Playful brands, end cards | Wrong for serious or luxury brands |
+| **Blur-to-sharp reveals** | V4, Still 3 | Premium, calm reveals | Keep the blur short |
+
+---
+
+## 5. What Makes These Feel Professional
+
+1. **Continuous motion over cuts.** Most references transform one thing into the next instead of cutting. Plan your transitions as part of the design, not as separate effects.
+2. **One focal point at a time.** Even in the busy scenes (V3, V7), only one thing is the star.
+3. **A strict palette per video.** V6 is purple, black and white. V7 is green, lime and cream. V8 is one gradient family per scene.
+4. **Typography does real work.** Weight changes, highlighted words, ghost text and italic serif contrast carry emphasis without extra effects.
+5. **Rest between busy moments.** White cards or footage after dense graphics gives the eye a break.
+6. **Rounded, soft geometry** in app-style videos (V2, V4, V7). Sharp, angular geometry only in V6's starbursts for energy.
+7. **Light interactivity cues** (cursor, click ripple, toggle) make a video feel like a real product.
+8. **A strong end card.** V6, V7 and V8 all finish with a clear, calm closing frame.
+
+---
+
+## 6. Quick Production Notes
+
+- **Soft gradients:** build with large blurred shapes (fractal noise or Gaussian blur) and slow position keyframes. Add grain on top.
+- **Glass:** blurred backdrop, 1 px light border, soft inner highlight, subtle drop shadow.
+- **Cursor:** a vector hand/pointer with its own scale-down on click and a ripple.
+- **Highlighter strokes:** a shape layer with a semi-transparent yellow stroke and trim paths, with slight irregular thickness.
+- **Per-letter animation:** in After Effects use the Text Animator with Range Selector, or split to shapes for custom paths. In code, SplitText-style libraries do the same.
+- **Mascot/carrier shape:** build as a shape layer with parametric controls (scale, rotation, petals), so the same rig can appear in many scenes.
+- **Vertical videos (V5, V6, V8):** keep key text in the middle 70% of the frame to avoid platform UI.
+
+---
+
+## 7. How to Use These References Without Copying
+
+- Take the **technique**, not the exact look. For example, "one object morphing through states" can become a notebook, a payment card, or a car dashboard in your own brand colors.
+- Change at least **three variables**: palette, shape language, and type style.
+- Keep a swipe file of what you borrowed, and rotate away from it on the next project.
+- If a reference is a purchased or licensed template (V3 looks like a template), do not republish its structure, assets or branding. Use it only to learn the pacing and layout logic.
+
+---
+
+## 8. What Would Help Me Go Deeper
+
+If you want, I can build on this analysis if you tell me:
+
+1. **Which of these 8 videos is closest to what you want to make?** I can write a scene-by-scene timing sheet for it.
+2. **What your own project is:** brand, product, platform and length.
+3. **Which software you are using** (After Effects, Figma, Remotion, etc.), so I can give you exact steps.
+4. **Whether you want the original files checked for audio or a closer frame-by-frame breakdown** of a specific moment (for example the V2 folder-to-checklist transition).

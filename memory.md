@@ -207,26 +207,128 @@ frame-accurate capture was not possible in this environment. **Do not claim the 
   eye-tracker** (`ui/eye-tracker`, `shape="Ball" size={96} tone="ink" decorative`, `follow={55} bounce={25}`) as a
   living avatar: it tracks the cursor and inverts with the theme because its `--fill-*` bridge is the page's own
   tokens. Its 200px frame is absolutely centred inside a `size-24` box that owns the layout space. Copy is split as
-  `ABOUT.lead` + `ABOUT.focus` (`AboutParagraph` with exact-match `highlights` rendered by `HighlightedParagraph`);
-  `ABOUT.bio` remains the single-paragraph fallback for the profile `terminal` variant. Availability pill was added
-  then removed on request. `Section` shell shared by all home sections.
+  `ABOUT.lead` + `ABOUT.focus` (with exact-match `highlights` rendered by `HighlightedParagraph`); `ABOUT.bio` remains
+  the single-paragraph fallback for the profile `terminal` variant. Availability pill was added then removed on
+  request. `Section` shell shared by all home sections.
+  - **About is now interactive, and was measured at zero interactive elements before this** — 655px of prose with 8
+    wash phrases, 8 chips and 4 fact rows, none of it responding to anything. Three claims, each with highlighted
+    evidence, presented as three equal grey blocks.
+  - **A paragraph activates from scroll position or pointer/focus, and three things follow.** The reading line sits at
+    `0.42` of viewport height and picks the *nearest* paragraph centre (not the first below the line, which flickers
+    when two are equidistant — exactly where the reader is looking). Pointer and focus *pin* an index and release on
+    leave, so a reader who stops on a paragraph keeps it lit instead of the next one taking over. On activation: the
+    paragraph lifts to `text-foreground`, its left rule fills, its phrases' washes go to full strength, the Stack
+    chips for that claim light, and the eye-tracker morphs `Circle → Hexagon → Cube`. Scroll reads `useScroll()`'s
+    `scrollY` via `useMotionValueEvent` and only calls `setActive` when the *index* changes — at most 3 times per pass,
+    rather than re-rendering on every scroll frame.
+  - **Emphasis is colour, never opacity** — same rule as the timeline. Chips are `litItems` on `TagList`; the lit chip
+    takes full ink and the rest take the muted one, and both states were measured at **8.97:1** against the card in
+    both themes, every chip at `opacity: 1`.
+  - `AboutParagraph` gained `tools?: readonly string[]`, matching `ABOUT.stack` labels by exact string so a renamed
+    chip never lights the wrong thing. **The mapping is PROPOSED and needs the user's sign-off** — each entry is
+    commented inline. `Next.js` and `TypeScript` are deliberately in no paragraph: they are stack, not claims, and a
+    chip that never lights is a true statement.
+  - The left rule (`border-l-2` + `pl-4`) replaced `space-y` as the paragraph separator: 24px of space between three
+    paragraphs read as one continuous block of prose, and the rule also encodes which one is active.
+  - **The Stack chips REORDER, animated, and it is behind a flag** (`TagList`'s `promoteLit`, off by default). Lit chips
+    slide to the front with `layout="position"` (FLIP) on a `stiffness: 420 / damping: 34 / mass: 0.7` spring —
+    deliberately faster than the 340ms wash, because the chips are the direct answer to the paragraph and the wash is
+    scenery. Verified: DOM order genuinely changes, a transform is present mid-flight
+    (`matrix(1,0,0,1,181.883,0)`), every chip is `position: relative`, and the list height is unchanged at 94px so
+    `flex-wrap` never reflows.
+  - **The reorder is a STABLE PARTITION, not a sort.** Two filtered passes keep both the lit and unlit groups in
+    authored order; a `sort` with a "lit first" comparator leaves the unlit chips' relative order up to the engine,
+    which for an 8-item array is not a promise to rely on. Measured: the unlit chips never move.
+  - **`project-accordion.tsx` must not get the reorder.** It renders `TagList` with `litItems` set, and reordering a
+    stack underneath someone reading a project description would be the exact cleverness this flag exists to prevent.
+    Under reduced motion the reorder does not happen at all — only the colour changes — because reordering is a change
+    of *content order*, and the one thing that must never be animated away from a reader who cannot see it happen is a
+    reordering.
 - `src/content/metadata.ts` — `rootMetadata` + `homeMetadata`; `src/content/types.ts` — shared types.
 
-- **Experience is a scaled timeline rail** (`src/components/sections/experience-timeline.tsx`), not a list. It was the
+- **The live Experience and Achievements sections were rebuilt as two different shapes on 2026-10-27.** The home
+  page no longer renders two copies of a timeline.
+  - **Experience** (`src/components/ui/experience-timeline-beam.tsx`) keeps the Aceternity timeline read: a sticky
+    start month/year column on wide screens, a scroll-driven `scaleY` rail, and a Bencho **edge light** rim on each
+    role card. The pointer writes `--edge-angle`; the card itself never moves. The rail is one full-height fill
+    scaled by `useScroll` (`start 0.85` / `end 0.55`), so there is no height measurement, resize listener, or state
+    update. The date column is `aria-hidden` because the card repeats the full authored `meta` range, including
+    "Remote".
+  - **Achievements** (`src/components/ui/achievements-bento.tsx`) is an Aceternity bento grouped by issuer, not a
+    timeline: a wide dark feature for the top result, two columns for each multi-credential programme (WiiZ,
+    Samatrix), one column for the single certificates, and a three-column summary band. Rank order is preserved by
+    `groupByIssuer` (first appearance wins). The Bencho **ink bloom** runs on press (`--bloom-x` / `--bloom-y` plus
+    `data-bloom`), so the reading surface never tilts. Both effects are removed under `prefers-reduced-motion`; both
+    entrances are transform-only (`y: 8` / `y: 12`), never opacity, so the content is present without JavaScript.
+    Built HTML verified: 0 `opacity:0` and 0 `display:none` inside both sections.
+  - Unused variants stay on disk and are not imported by the home page: `sections/experience-timeline.tsx`,
+    `ui/experience-timeline-pro.tsx`, `sections/achievements-ledger.tsx`, `ui/achievements-timeline.tsx`, and the
+    two `*-aceternity.tsx` files. The detailed rationale below belongs to the earlier
+    `sections/experience-timeline.tsx` variant, not the live component.
+- **The earlier Experience variant is a scaled timeline rail** (`src/components/sections/experience-timeline.tsx`), not a list. It was the
   only flat block on the page, sitting between Projects and Skills which both ask for attention, and the content
   decided the shape: three short roles in a tight window where the gaps are real information. Stops are ordered
   oldest-first by `start`, and the space between two stops is proportional to the months actually between them, so an
-  8-month gap and a 3-month gap read as different sizes. **Only the gaps are scaled** — within a stop the height is
-  content-driven, because a 2-month role carries the same text as a 12-month one and date-proportional heights would
-  force truncation. **Each role's own duration is deliberately NOT printed:** the date range is already on the stop in
-  full, and a bare "3 months" for the job sits a few pixels from a "3 months" for the gap in the same mono weight, which
-  is a genuine ambiguity between two different quantities. One number per gap, none per stop.
+  8-month gap and a 3-month gap read as different sizes. **Only the gaps are scaled vertically** — within a stop the
+  height is content-driven, because a 2-month role carries the same text as a 12-month one and date-proportional heights
+  would force truncation. **Each role's own duration is deliberately NOT printed as text:** the date range is already on
+  the stop in full, and a bare "3 months" for the job sits a few pixels from a "3 months" for the gap in the same mono
+  weight, which is a genuine ambiguity between two different quantities. One number per gap, none per stop. The duration
+  is encoded **visually** instead, on the horizontal axis — see below.
+  - **The second axis: duration bars (`src/components/sections/experience-timeline.tsx`).** A vertical timeline already
+    spends one axis on time — the gap between roles — which leaves the second axis free. Each stop now carries a
+    horizontal bar filled in proportion to that role's real duration against the longest role on the page, so
+    "2-month sprint or 6-month job" is answerable without reading a date range. The two axes therefore say genuinely
+    different things: **vertical space = the gap, horizontal bar width = the role's own length.** The bar is segmented
+    by `stack.length`, so the one recurring theme in this career (applied AI, every role) shows as a family resemblance
+    without anyone reading a bullet. The bars are `aria-hidden` — they restate the dates and the stack in a worse form —
+    and they are the one thing in the section allowed to recede while text beside them holds full contrast.
+  - **`DurationBar` had a real encoding bug that a screenshot would never have caught.** `flexGrow: 1` on each segment
+    plus `flexGrow: 1 - ratio` on the trough does **not** produce `ratio`: the segments split `1` *among themselves* and
+    then compete with the trough, so three bars measured 0.83 / 0.845 / 0.81 for roles of 3, 2 and 6 months — a
+    two-month capstone and a six-month job drew the same width. **The ratio must go on the GROUP that wraps the
+    segments**, never on the segments themselves. Correct values now measure 0.502 / 0.335 / 0.999 against an expected
+    0.500 / 0.333 / 1.000. The bar also uses `Math.max(0.001, 1 - ratio)` rather than `1 - ratio`, because a
+    `flex-grow: 0` element collapses to `min-content` and can round to a visible sliver on the longest role.
+  - **The evidence panel is a native `<details>`, and this replaced a real accessibility defect.** It was a `motion.div`
+    height animation behind a `<button>` with `aria-expanded`, shipping `height:0px;opacity:0` + `inert` on all three
+    panels — verified in the built `out/index.html`. Fine with scripting on, useless without it: every accomplishment
+    statement sat in the DOM with **no possible way to ever reveal it**. `<details>` inverts that — the platform owns the
+    disclosure, Enter/Space/tap work natively, and a closed panel is genuinely *unrendered* rather than laid out at zero
+    height with `inert` on top, which also removes the `inert` bookkeeping entirely. Built HTML now has **0**
+    `opacity:0` and **0** `inert`. Cost: the panel no longer animates open. The open state is signalled by the chevron
+    rotating and a `Show`/`Hide` label, both pure CSS on `details[open]` via `group-open:`, so the label is correct
+    with scripting off. Given the section's job is being readable, that is the right way round.
+  - **`ProjectAccordion` (`src/components/ui/project-accordion.tsx`) has the same `opacity:0` + `inert` flaw the
+    Experience timeline just fixed, and it is still there.** Eight project panels ship `height:0;opacity:0` + `inert`.
+    Not touched — it is outside this task's scope and the Projects content is far more visible from the collapsed rows
+    (name, tagline-adjacent summary) — but it is the same bug and the same fix applies.
+  - **Measuring a closed `<details>` is a trap worth remembering.** The inner `<ul>`'s `getBoundingClientRect()` inside an
+    unrendered content slot reports a **stale 52px while the whole panel measures 36px** — two earlier versions of the
+    probe compared that number and "failed" a working component. `getComputedStyle().display` is also misleading: it
+    still reports `block` for hidden content. The only trustworthy measure is the `<details>` box itself: closed it equals
+    the `<summary>` height (36px), open it is 146px.
+  - **Two contrast probes in this session were silently broken and both "passed" wrongly.** One parsed the computed colour
+    with `/[\d.]+/` and assumed 0–255 RGB, but this design system uses `oklch()`, so it produced garbage — it reported
+    **1.17:1** for body text that is plainly readable, and would equally have waved through a genuine 1.17:1 failure. Fix
+    is to resolve any CSS colour by painting it to a 1×1 canvas and reading the pixel back, and to composite alpha against
+    the resolved background first, because contrast is evaluated on the painted result. Measured properly, all 30 text
+    nodes in the section clear AA at rest.
+  - A **third** stale check counted `<li>` elements to verify the timeline's list structure and reported "14 structural,
+    5 bullet" for 3 roles — it was counting the 11 `TagList` chip `<li>`s as structural, introduced with the per-role
+    `<details>`. Nested lists inside a role are valid markup; the assertion was wrong, not the component.
 - `ExperienceItem` (`content/types.ts`) gained `start: MonthKey`, `end: MonthKey | null` (`null` = current role, resolved
-  to the present month at render, hence a client component), and `outcome` (one line promoted above the bullets —
-  `60% less manual paperwork`, `Best Capstone Project`, `RAG on Vertex AI and Gemini`). `meta` is untouched and remains
-  the string that reaches the page; the numbers only drive geometry. `MonthKey` is a `` `${number}-${number}` `` template
-  literal, not a `Date`: these are authored in content, never mutated, and a `Date` invites timezone arithmetic a
+  to the present month at render, hence a client component), `outcome` (one line promoted above the bullets —
+  `60% less manual paperwork`, `Best Capstone Project`, `RAG on Vertex AI and Gemini`), and `stack` (the tools each role
+  used, authored per role rather than parsed out of the bullets — parsing "RAG" out of prose is a guess that quietly
+  rots when a bullet is reworded, and a chip list that silently loses an item is worse than none). `meta` is untouched and
+  remains the string that reaches the page; the numbers only drive geometry. `MonthKey` is a `` `${number}-${number}` ``
+  template literal, not a `Date`: these are authored in content, never mutated, and a `Date` invites timezone arithmetic a
   calendar month does not have.
+- **The outcome is the headline, not the bullets — the reverse of a usual resume block.** `outcome` gets the largest
+  type in the stop and sits directly under the role, and the bullets are the evidence behind a disclosure. The strongest
+  fact in each role is therefore on screen before any interaction, which is the main reason the section is readable at a
+  glance.
 - **Interaction:** rail fill is `scaleY` scrubbed to scroll via `useScroll({ offset: ["start 0.85", "end 0.4"] })`, so
   the only self-running motion answers the reader's own scroll position. Stops animate `opacity` only; `height`/`top`
   are never animated. Hover **and keyboard focus** both fill the marker, raise the outcome to full contrast, and drop
@@ -262,18 +364,143 @@ frame-accurate capture was not possible in this environment. **Do not claim the 
   to be *read*; grouping by category is the recommended pattern and self-assessed percentages are rejected
   by every source as unmeasurable. The AI group leads and is the only header at full contrast, so hierarchy
   comes from contrast rather than size. Flat by design: no tiles, no per-item borders, no radii.
+- **A "wait for the element" helper must wait for the BEHAVIOUR, not the DOM.** Three separate probe failures this
+  session came from sampling across process boundaries, and each read as a product defect:
+  1. `accordion-probe.mjs` waited for `[data-project-row] === 8`, true in the **server HTML** before React attaches
+     handlers, so the click was swallowed. Failed 3/3 and looked like a reduced-motion bug in Projects.
+  2. Pointer-driven motion needs **real** input. `dispatchEvent(new MouseEvent('mouseover'))` does not produce a
+     pointer event, so `onPointerEnter` never fired; and a pointer left inside a bar from a previous step means no
+     new `pointerenter` fires at all. Use CDP `Input.dispatchMouseEvent`.
+  3. A hover target measured at `cy: -200` — above the viewport — silently does nothing. **Assert the target is on
+     screen before dispatching at it.**
+- **Synthesising a CSS `linear-gradient` in a canvas `fillStyle` does not work** when its stops use `color-mix()`
+  with custom properties; canvas cannot resolve either. Measure gradients from real pixels or reason about them
+  arithmetically rather than trying to composite them in JS.
+- **Skills gained a composition bar, and it is also the section's only control** (`skills-index.tsx`). Grouping
+  alone answers *which* categories exist, never *how much of the stack each one is* — the previous layout made
+  "is this an AI portfolio that also ships, or a web portfolio with some AI in it?" a matter of opinion. The bar
+  is **40 units wide, split into 7 segments sized by item count**, so AI/ML plus the model providers read as
+  13 of 40. Measured: `0.225 / 0.100 / 0.174 / 0.100 / 0.174 / 0.125 / 0.100` against an expected
+  `0.225 / 0.100 / 0.175 / 0.100 / 0.175 / 0.125 / 0.100` — max drift 0.001. **The figure is a `reduce` over
+  `TECH_STACK_GROUPS`**, so it cannot drift when a technology is added; a hardcoded "33% AI" would be wrong
+  within a year.
+- **The bar is bidirectional, which is what makes it read as designed rather than assembled.** Hovering or
+  focusing a segment emphasises its column below; hovering a column lights its segment above. One control that is
+  also the overview, instead of a filter row sitting above a separate chart.
+- **The composition bar's resting fill had to be made theme-relative, and the reason is worth keeping.**
+  `bg-muted-foreground/25` measured **1.47:1** against the dark page and **1.37:1** against the light one — a
+  clear WCAG 1.4.11 failure on a graphic whose entire job is to be read as a chart. The tempting argument is that
+  the proportions are also stated in text, so the fill is decorative and exempt. That argument can be made to
+  work and was rejected: it is arguing for an exemption rather than fixing the thing. **A single alpha cannot
+  clear 3:1 in both themes**, because `muted-foreground` is light in dark and dark in light:
+
+  | alpha | dark seg-vs-page | light seg-vs-page |
+  |---|---|---|
+  | 25% | 1.47:1 | 1.37:1 |
+  | 55% | 2.98:1 | 2.12:1 |
+  | **65%** | **3.79:1** | 2.49:1 |
+  | **85%** | 5.76:1 | **3.54:1** |
+
+  So the resting fill is `bg-muted-foreground/85` with `dark:bg-muted-foreground/65`, and hover goes to the full
+  token. The count text stays `text-foreground`, which clears 4.5:1 on both fills (5.25:1 dark, 5.61:1 light).
+  **The two constraints squeeze from opposite ends and 65/85 is the window where both hold at once.**
+- **A muted-on-muted defect the broken colour probe had been hiding.** The 10px category label inside each segment
+  was `text-muted-foreground`, sitting on a fill that is *itself* muted-foreground: **2.03:1 dark, 1.34:1 light**.
+  It went unnoticed for several rounds because the probe in use resolved colours wrongly and reported the segment
+  as far darker than it renders. Now `text-foreground`, matching the count beside it.
+- **Canvas colour measurement has two traps, and both bit this session.**
+  1. `getImageData` returns **premultiplied** values. Compositing them again in JS applies alpha twice. Fixed by
+     painting the test colour onto an opaque page-coloured canvas and reading the pixel, so the browser composites
+     once.
+  2. A translucent background must be composited over **every** layer beneath it, not just the first ancestor
+     that looks opaque. Walk the chain to the opaque backdrop, then paint bottom-up.
+  Either mistake silently reports a fictitious failure (or hides a real one), and both did.
+- **Two pieces of state, because "which category is emphasised" has two causes that must not fight.** `pinnedId`
+  is a decision (click/tap) and must survive the pointer leaving; `previewId` is a hover/focus and must end when it
+  does. `activeId = pinnedId ?? previewId`. The naive `openIndex ?? hovered` shape — the one `ProjectAccordion`
+  had to be patched for — would drop the emphasis the moment the pointer moved off the bar onto a column.
+  Activating the pinned segment again unpins it; Escape clears.
+- **The segment label is only rendered when the share clears `LABEL_MIN_SHARE` (0.15)**, decided by comparing the
+  known ratio rather than by measuring the DOM — the proportion is already in hand, so there is nothing to
+  measure. At 320px that means 3 of 7 segments are labelled and 4 show only a count, instead of seven truncated
+  words. Narrowest segment is 28px wide at 320px: below the 44px touch ideal, and unavoidably so for a 10% share.
+- **The section's motion is BORROWED FROM HERO AND CONTACT, not invented to look like it.** The first version had
+  `transition-colors duration-300` and read as dead next to the hero. It now runs the same four techniques those
+  two sections already use, with the same numbers:
+
+  | technique | borrowed from | here |
+  |---|---|---|
+  | spring `{ stiffness: 520, damping: 24, mass: 0.6 }` | `dragging-ball.tsx` hover/press | `TAP_SPRING`, segment fill + Experience bar |
+  | pointer-following via `useMotionValue`, zero React re-renders | `raj-ball.tsx` fan riding the ball's `x`/`y` | each segment leans up to 4px toward the pointer |
+  | staggered fan-out, `transitionDelay: i * stagger` | `radial-menu.tsx` | a category's items spring to full scale in sequence, 26ms apart |
+  | ambient loop, frozen on reduce | `HeroGradientWaves` + `.skills-sheen` | the AI rule's 7s ink sweep (unchanged) |
+
+  Measured, not assumed: lean `+3.62px` right / `-3.6px` left / `0.01` centred, still in flight at `-0.58` when
+  the target was `3.62` (a real spring, not a tween); press squashes `0.9 → 0.606` and springs back; cascade reads
+  `[0.974, 0.962, 0.948, 0.940, 0.940]` at +70ms settling to `[1,1,1,1,1]` at +350ms.
+- **Every initial state is a TRANSFORM, never `opacity: 0`.** This is the rule that finally lets these sections
+  animate. `initial={{ opacity: 0 }}` ships into the static HTML and a `whileInView` reveal needs an
+  `IntersectionObserver` to fire, so with scripting off the whole section sits painted at zero — 40 technologies,
+  gone. That is why `about-section.tsx`, `skills-index.tsx` and `experience-timeline.tsx` were all moved to
+  `initial={false}`, which is safe and which also means nothing moves on entry at all. **`initial={{ y: 10 }}`
+  resolves the two**: fully painted and readable in the static HTML (ten pixels low, not invisible), springing to
+  rest when JS runs. Verified in the built `out/index.html`: `translateY(10px)` on the Skills columns,
+  `translateY(12px)` on the Experience stops, and **zero** `opacity:0` in either section.
+- **A bar sheen was tried and removed, for a measurable reason.** Sweeping `--background` across the composition
+  bar breaks it: the light-theme resting fill sits at 3.54:1, so a white highlight keeps that ratio only at an
+  alpha of **7% or less** — invisible. The effect was either imperceptible or a WCAG 1.4.11 failure. The sheen
+  stays on the AI category's hairline, which carries no data. **Do not put a light overlay on a graphic that has
+  to clear 3:1.**
+- **`pointer-events-none` on the leaning contents span is load-bearing.** It sits above the fill, so it was the hit
+  target and the fill's `whileHover`/`whileTap` never fired — measured press was `1 → 1.003 → 1` instead of a squash.
+  Letting events fall through puts the fill back in front, and clicks still work because a press on a child bubbles
+  to the `<button>`.
+- **The button's box is transform-stable; every transform is on a child.** The bar's rect is cached once per gesture
+  (`getBoundingClientRect` in a `pointermove` forces layout every frame) and is only valid because nothing moves
+  the button itself. Same trade `raj-ball.tsx` makes, measuring the viewport once rather than per frame.
+- **`--ease-spring` exists for the motion CSS has to own.** The `<details>` chevron turns because `details[open]`
+  changed, and that state lives in the platform — there is no React state to hand a framer spring. A CSS
+  `transition` is the only option, so the spring is a `linear()` curve that overshoots past 1 before settling.
+  `--ease-change` is kept separately for pure state crossings: a colour should not overshoot past its target.
+- **The Experience duration bar animates `scaleY`, never `scaleX`.** The bar's width *is* the encoded duration, so
+  scaling X would shift the proportion. Verified under a live hover: `scaleY 1 → 1.35` with `scaleX` exactly 1 and
+  the rendered width unchanged at 331px.
+- **`viewport={{ margin: "-12% 0px" }}` legitimately leaves lower items un-triggered.** Parking a section's top at
+  the viewport top and waiting measured `[0, 0, 10, 10]` for Skills and `[0, 0, 12]` for Experience — the negative
+  margin is doing its job. Only a sweep through the whole section can assert that every item settles. **This is not
+  a defect and the assertion was wrong**, not the component.
+- **Column hover is deliberately mouse-only.** It is pure emphasis, and everything it emphasises is already visible
+  and reachable via the bar's seven buttons, so making columns focusable would add seven more tab stops to a
+  section that should be skimmable.
 - **Reduced motion must never hide content here (bug found and fixed).** `useReducedMotion()` returns `null`
   until it settles, so a `reduceMotion ? false : { opacity: 0 }` test treats `null` as "motion allowed",
   applies the hidden initial state, and then leaves the section at `opacity: 0` for anyone who asked for
-  reduced motion. `SkillsIndex` therefore computes `const reduced = reduceMotion !== false` and renders
-  **plain elements** (not `motion.*` with `initial={false}`) whenever motion is reduced or still unknown.
-  Verified: reduced-motion blocks measure `opacity: 1` with all 40 items present.
+  reduced motion. `SkillsIndex` therefore computes `const reduced = hydrated && reduceMotion === true` and
+  renders **plain elements** (not `motion.*` with `initial={false}`) whenever motion is reduced or still
+  unknown. (The original `reduceMotion !== false` was the hydration bug described further down; the
+  `hydrated &&` gate is the fix and the plain branch is what keeps the section readable without JS.)
+  Verified: reduced-motion blocks measure `opacity: 1` with all 40 items present, the bar still renders and is
+  still operable, and there are zero transitions over 300ms anywhere in the section.
+- **`data-skills-readout` exists only for the probes.** The obvious selector,
+  `[aria-hidden="true"].font-mono`, matches a bar segment's count span first — it is earlier in the DOM and also
+  `aria-hidden` and `font-mono` — so a test using it read `"9"` as the readout text and reported a false failure.
+  **When adding a test hook, check that the naive selector cannot reach the wrong element first.**
+- **`getBoundingClientRect().top` is scroll-relative** and reported a phantom 8px "layout shift" when the
+  Skills readout changed on hover — the shift was scroll jitter from a preceding `scrollIntoView`. The readout
+  measures a constant 40px in every state at every width. Use `offsetTop` for layout-shift assertions.
 - `TECH_STACK_HIGHLIGHT_IDS` are now marked in place at full contrast inside the AI group rather than pulled
   into a separate bento band, which had split the AI group and stranded three items under an unrelated
   category heading.
 - `.skills-sheen` in `globals.css` is the section's only continuous animation (a 7s ink sweep across the AI
   rule). It is paused via `html:active-view-transition .skills-sheen` for the same reason the WebGL hero is,
   and `animation: none` under reduced motion.
+- **`accordion-probe.mjs` had a hydration race that failed Projects under reduced motion.** Its
+  `waitForAccordion` waits for `[data-project-row] === 8`, which is true in the **server HTML** before React has
+  attached any handler, so a single click was swallowed by the un-hydrated tree and every row still read
+  `aria-expanded="false"` 700ms later. Reproduced 3/3, looked like a reduced-motion bug, and was **not one**:
+  verified over CDP that a real dispatched mouse click on row 2 under `reduce` does set `aria-expanded="true"`
+  and opens the panel to 245px. Fixed by polling the click until the state actually flips, which tests
+  hydration instead of luck. **Lesson: a "wait for the element" helper must wait for the behaviour, not the DOM.**
 - **Achievements integrity rules:** only claims the public record supports. Team results are worded as team results
   and tagged `scope: "team"`, which the section renders as a "Team award" prefix. Excluded until the user's own
   certificate names them: the WiiZ Highest Workflow Creation and Most Active Participation awards, and the
@@ -402,6 +629,153 @@ static-export HTML — a footer that only mounts in an effect is a footer crawle
 - The footer mirrors `NAV_SECTIONS` as a doormat, so `nav a[href="#about"]` now matches **two** elements. Scope test
   selectors to `header nav …`.
 
+## Accessibility pass (2026-10-01)
+
+An audit of every route produced the fixes below. **Three of the bugs were mine**, introduced earlier in the
+session; they are called out as such because the obvious instinct is to assume an inherited defect is not your
+fault. Measured, not read.
+
+### Fixed
+
+- **The occluded footer was focusable (13 links).** The curtain leaves `.curtain-footer` behind an opaque
+  `<main>` for the whole document, but nothing marked it `inert`. Hit-tested at `scrollY 0`: 13 of 13 footer
+  links blocked by `<main>` yet still in the tab order, and since the container is `position: fixed` the browser
+  cannot scroll a focused descendant into view, so tabbing produced no visible movement at all. Now `inert` in
+  `PageShell` (server-rendered, so the hidden state is right before JS runs), released by a second ScrollTrigger
+  in `CurtainScroll` on `onLeave`/`onEnterBack`. Verified: inert at `scrollY 0`, released once revealed, 0
+  links blocked when visible.
+- **Focus indicator was invisible in the light theme.** The shadcn base rule was `*{ @apply border-border
+  outline-ring/50 }` — a colour only, leaving width and style to the UA default (measured `outline-style: auto`,
+  `1px`), and `--ring` is `--vng-primary`, near-black in light. On the always-dark notch that measured **1:1**.
+  Now `:focus-visible { outline: 2px solid var(--focus-ring, var(--ring)); outline-offset: 2px }`, and the notch
+  and footer set `--focus-ring: #fafafa`. Measured after: 18.1:1 light, 19.06:1 dark.
+- **Experience timeline failed AA whenever one stop was active** (mine). `opacity-55` on inactive stops composites
+  against the page background *before* contrast is evaluated: muted body went 7.7:1 → **3.01:1** dark and
+  4.74:1 → **2.12:1** light, 10/17 and 12/17 samples failing. `onFocus` triggered it too, so **tabbing** broke it.
+  There is now no dimmed state: inactive stops hold full contrast and the active one is distinguished by its
+  marker and its outcome line. Measured 0/17 failing at rest and hovered, both themes.
+- **About was invisible without JavaScript** (mine, a real precedent in the codebase). Two `motion.div`s with
+  `initial={{ opacity: 0 }}`, no `useReducedMotion()` guard. With script execution disabled: both wrappers at
+  `opacity: 0` — the lead sentence, all three focus paragraphs and the whole Stack/Education sheet gone. Now
+  renders plain elements when `reduceMotion !== false`.
+- **MorphText ran an infinite blur+scale animation with no reduced-motion rule.** All six
+  `prefers-reduced-motion` blocks in `globals.css` were read; none touched `morph-*`. It is the largest object on
+  the hero (WCAG 2.2.2). Cancelling the animation alone would leave the rotator empty, since every word carries an
+  inline `opacity: 0`, so the first word is pinned visible and the rest pinned hidden — the state the animation
+  resolves to anyway, held still. Also dropped its render-blocking Google Fonts `@import`: the only third-party
+  request on the site, and the family was never applied (the hero passes the site's Geist).
+- **`/paper` had zero headings** — verified 0 `<h1>`/`<h2>`/`<h3>` in `out/paper.html`, and the certificate text is
+  `ctx.fillText` on canvas, so the route's content existed only as pixels. Added an `sr-only` `h1`, an
+  `aria-labelledby` section, and a visible text alternative.
+- **The 404's links were all dead.** Only ids in the built document were `_R_` and `main`, against seven `#`
+  fragments. Fixed at the source with a `homePrefix` prop threaded through `SiteHeader` → `NavSectionLinks` →
+  `NavMobilePanel`, set to `"/"` on the 404 only, so the header's links match the doormat's.
+- Skip link `z-[60]` → `z-[110]` (it was painted *behind* the `z-[100]` preloader for ~5s); `<main tabindex="-1">`
+  so the skip link actually moves focus (it previously landed on Experience and skipped About); preloader `Skip`
+  `text-white/45` → `/60` (4.487:1, needed 4.5:1 at 10px); `og:image` restored on `/paper` (a nested
+  `openGraph` **replaces** the inherited object rather than merging, so the per-route override dropped `images`).
+- Duplicate `nav aria-label="Primary"` while the mobile sheet was open → "Primary, secondary".
+
+### Added
+
+- **JSON-LD** (`src/content/json-ld.ts`): `Person`, `WebSite`, `ProfilePage`, and the work history as an
+  `ItemList` of `Occupation`. Derived from `SITE` / `EXPERIENCE` / `AWARDS` / `EDUCATION`, so it cannot drift from
+  the rendered page. `hasCredential` **excludes** `scope: "team"` awards — an edge to a team result is a statement
+  about the person. Ongoing roles carry `duration` (ISO 8601) and no `endDate`.
+- **One `<script type="application/ld+json">` per document.** The first version joined them with `\n` into one tag,
+  which is not valid JSON and which a crawler discards whole — caught in the export, not in review.
+- **Web manifest** (`public/manifest.webmanifest`) + `public/icon.svg` + `apple-touch-icon.png`, generated from the
+  SVG by `scripts/generate-touch-icons.mjs` (`npm run icons:touch`) so the raster cannot drift from the vector.
+
+### Semantic + motion pass (second round, 2026-10-01)
+
+- **Projects had no subheadings at all.** The eight project names were bare `<span>`s inside buttons, so a
+  heading-outline walk found `h2 Projects` with no children and then jumped to `h2 Skills` — while Experience, the
+  neighbouring section, exposed its three roles as `h3`. Now `<h3>` per project, inside the trigger button. Legal, and
+  it does **not** add a second stop to the accessible name: heading content is not concatenated into a button's name.
+  The full page outline now reads h1 → h2 per section → h3 per item with no skipped levels.
+- **The footer's group labels were `<p>`s and one group had no landmark at all.** "Sections" and "Elsewhere" are
+  structural — they say what each group of links is — so they are now `<h3>`, each `nav` is `aria-labelledby` its own
+  visible heading, and the old `aria-label="Footer"` (which duplicated the visible label) is gone. "Elsewhere" was a
+  bare `<div>` of four links and a back-to-top that no landmark pointed at, so a screen reader's landmark list showed
+  "Footer" and then nothing for the channels.
+- **`aria-controls` pointed at an element that only existed while open.** `nav-mobile-panel.tsx` places
+  `id="primary-menu"` inside `{open ? … : null}`, so the reference dangled whenever the panel was closed. Now
+  `aria-controls={open ? "primary-menu" : undefined}` — `aria-expanded` already conveys "collapsed", and a dangling id
+  is worse than none because a screen reader may offer to jump to something absent. Verified 0 of 10 collapsed buttons.
+- **Escape on the contact fan stranded focus on `<body>`.** The same `open` change that re-adds `inert` to the arc made
+  the focused node inert, so focus fell to `<body>` and the next Tab restarted from the top of the document.
+  `RadialMenu` takes an optional `returnFocusTo` ref and restores focus on Escape; `DraggingBall` gained a `rootRef`
+  and `raj-ball.tsx` wires the two. `setOpen` also became a `useCallback` — an unstable one re-armed the Escape listener
+  on every render. Verified: focus lands back on the ball, `fanInert: true`, not `<body>`.
+- **Two reduced-motion gaps closed.** `dragging-ball.tsx` consulted `reduce` only inside `settle()`, so `whileHover`
+  and `whileTap` still squished — Framer does not disable those for anyone who asked for reduced motion. Both are now
+  `undefined` rather than a zero-scale object. And the eye-tracker's 160ms blink fired every 2.6–5.8s regardless, at
+  both call sites; it is now gated on the same `still` flag the spring and shape morph already used. Verified: hover
+  under reduced motion leaves `transform` byte-identical.
+- **The preloader declares each greeting's language.** Eight greetings in four scripts under `<html lang="en">`. Every
+  layer is `aria-hidden` so nothing is mis-voiced today, but the document was displaying text it did not declare. One
+  `lang` per script on the word layer: `fr es de zh-Hans ru ja hi`. `Hello` deliberately carries **no** `lang` — it is
+  the document language, so declaring it would be noise.
+
+### Traps recorded here
+
+- **`themeColor` and `colorScheme` live on the `viewport` export, not `metadata`.** On `metadata` they compile
+  without complaint and emit nothing. Verified absent from the built HTML until moved.
+- **Layer order beats specificity — and `outline-ring/50` on `*` cannot be out-specified from `@layer base`.**
+  Three attempts failed before the real cause was clear: a per-surface `header nav :focus-visible
+  { outline-color: … }` lost; so did a `--focus-ring` custom property. The `*` rule's compiled
+  `color-mix(in oklab, var(--ring) 50%, transparent)` outranked both. Moving the `:focus-visible` rule **out of
+  `@layer base`** did not help either. What worked was removing `outline-ring/50` from the base rule entirely so
+  `:focus-visible` owns the indicator outright. If a Tailwind v4 base rule beats a hand-written override, suspect
+  the layer, not the selector.
+- **`@property` silently un-inherits.** Registering a custom property to make it animatable resets its inheritance
+  to whatever `inherits` says, and the default is `false`. An unregistered property inherits. This cost two rounds
+  on the About wash: `--about-wash` was set to `1` on the mark, and measured `--about-wash: 1` on the mark while its
+  `::after` computed `opacity: 0.34` — the registration's `initial-value`, every time, so hovering a paragraph looked
+  like nothing happened. `inherits: true` fixed it; the painted pixel went from `25,25,27` to `58,58,59`. **When you
+  register a property to animate it, check whether a child was relying on inheriting it.**
+- **A gradient painted into an inline `mark` concentrates along the baseline.** Two attempts at the About wash
+  painted `background-image` straight onto the mark and both came out looking like underlined links in screenshots
+  (`engineering problem`, `outside a notebook`). The mark's height is the line box, so that is where the gradient's
+  mass lands. A pseudo-element `inset: -0.12em -0.18em` is a real highlighter mark and cannot be misread as a rule.
+- **Tailwind utilities cannot override an unlayered rule — not even `outline-none`.** The global
+  `:focus-visible { outline: 2px solid … }` is unlayered (see the focus-indicator note above), and unlayered CSS
+  outranks *every* `@layer`, `utilities` included. `outline-none` on the About paragraphs compiled, applied, and
+  lost; measured still `outline: solid 2px`. Fixed with `[data-about-paragraph]:focus-visible { outline: none }` —
+  specificity 0,2,0 against the bare pseudo-class's 0,1,0, in the same unlayered context. **When an unlayered rule
+  seems unbeatable by a utility, it is: raise specificity, don't reach for `!important`.**
+- **A focusable block of prose must not draw the control outline.** It drew a 2px white rectangle around a paragraph
+  *and* its own 2px left rule. The left rule, the wash and the lifted text colour are the whole focus treatment, and
+  all three are visible — nothing is lost, and keyboard users get exactly the state a pointer gets.
+- **Screenshot every motion change.** Three separate defects here were invisible in the DOM and obvious in a
+  screenshot: an underline-shaped wash, an invisible ignition caused by the `@property` inheritance, and paragraph
+  spacing that had collapsed. Every one of them measured clean in JS.
+- **`useReducedMotion()` IS `null` ON THE SERVER AND `false` IN THE BROWSER** (verified in
+  `node_modules/framer-motion/dist/es/utils/reduced-motion/use-reduced-motion.mjs`: the hook calls
+  `initPrefersReducedMotion()` synchronously in its body, whose `isBrowser` guard returns early on the server, then
+  captures the value with `useState`). So `reduceMotion !== false` — which this repo used in four components and which
+  `memory.md` previously called "load-bearing" — is **`true` on the server and `false` in the browser**. It renders two
+  different trees and React reports a hydration mismatch on **every page load**: About, Experience, Skills and the 404 all
+  rendered their plain branch server-side and their animated branch client-side. **That note was wrong and cost a
+  hydration error; the correct expression is `useHydrated() && useReducedMotion() === true`.** `useHydrated` is `false`
+  for the server *and* the hydration render, so both pick the same branch.
+- **A `whileInView` reveal and "visible without JS" are in direct conflict, and the visible state wins.** Once the
+  server must render the animated branch, a hardcoded `initial={{ opacity: 0 }}` puts `opacity: 0` in the static HTML,
+  and the reveal never fires without an `IntersectionObserver` — the content is in the DOM (measured 1017 chars, 8 marks,
+  8 chips, 4 education rows) but painted at zero forever. Resolved with **`initial={false}`** on all four reveal wrappers
+  in `about-section.tsx` and `skills-index.tsx`: the resting state is painted, the server and hydration render agree, and
+  `whileInView` becomes a harmless no-op because the resting state IS the target. **The cost is that these blocks no
+  longer animate in on the client.** That is the accepted trade and it is recorded at each call site.
+- **Do not assert "no opacity:0 in the SSR HTML" as a proxy for "visible without JS".** It was a reasonable-looking
+  check that became wrong the moment the hydration fix landed, and it passed for the wrong reason while the real defect
+  stood. Assert the content is *present*, and measure visibility with `setScriptExecutionDisabled`.
+- Reading `out/*.html` with a scoped `slice(indexOf('id="x"'), …)` is the reliable way to assert per-section
+  markup; naive `/<ol class="flex flex-col">/` matches whichever list comes first on the page and reports an
+  unrelated item count.
+- `Input.dispatchMouseEvent` `mouseWheel` does not scroll this page. `Input.synthesizeScrollGesture` does, and
+  **negative `yDistance` scrolls down**; it is async and smooth, so `await` it and allow ~3s before reading.
+
 ## Tooling / verification workflow
 
 - The user keeps a `next dev` server on **:3000** (do not kill it).
@@ -413,6 +787,23 @@ static-export HTML — a footer that only mounts in an effect is a footer crawle
   `togglever*.mjs`, `aroundcheck.mjs`); screenshots go to `...\opencode\shots\`. Probe asserts geometry,
   computed styles, console/page errors, and screenshots both themes.
 - After every change run: `npm run lint`, `npx tsc --noEmit`, `npm run build`.
+- **Static export assertions:** `C:\Users\aks10\AppData\Local\Temp\opencode\verify-html.mjs` checks the built
+  `out/*.html` for 43 invariants (footer `inert`, JSON-LD parses per block, `/paper` headings, 404 fragments
+  resolve, manifest/icons/theme-color, timeline list validity, focus-ring CSS in the compiled bundle, About not
+  hidden). `semantic.mjs` adds heading-outline and landmark checks (one h1, no skipped levels, project h3s, footer
+  navs, `aria-controls`). Fast, no browser, and it is what catches things a screenshot will not.
+- **`useHydrated`-gated components do not exist in the SSR HTML.** Grepping `out/index.html` for the preloader's
+  per-word `lang` attributes found nothing and reported five failures — there was nothing to find. Anything asserted
+  about those components has to be asserted against the live run (`runtime-verify.mjs` polls for the whole duration
+  rather than sampling once, since at 2s only 2 of 8 words have rendered).
+- **Browser assertions:** `verify-a11y.mjs` (footer inert lifecycle, focus-ring contrast per theme, timeline
+  contrast at rest and focused, keyboard reach, About without JS, reduced motion) and `lean.mjs` (layout
+  integrity, chat open/answer/Escape, footer release). Both randomise their debug port.
+- **This machine runs out of RAM.** Repeated headless Chrome probes plus the user's own apps (CefSharp ~1 GB,
+  Edge WebView2) exhaust 15 GB and the renderer then fails to respond to *any* `Runtime.evaluate`, including
+  `document.title` — which looks exactly like a page bug and is not. When probes start timing out on a trivial
+  expression, check `Get-CimInstance Win32_OperatingSystem` `FreePhysicalMemory` before touching site code. Kill
+  stray `chrome.exe` and probe servers, but never the user's `next dev` on :3000.
 
 ## Hosting: 5at4am.me on GitHub Pages
 
@@ -523,8 +914,9 @@ deleting the page.
 
 ## Git
 
-History is intentionally shallow: `27630bf` Create Next App (no navbar), `c804111` first navbar design,
-`7c8f8d3` build flag commit, `60b1c71` notch navigation + contact ball + preloader + export-driven deploy (this one
-also swept in the deleted story/credentials sections and removed the tracked `__pycache__` files). Uncommitted as of
-now: only the contact-ball bug fixes (`page.tsx`, `contact-ball.tsx`, `dragging-ball.tsx`) plus this `memory.md`
-update. Commit only when explicitly asked.
+The working branch is `feat/animated-sections`, pushed to the `portfolio` remote
+(`https://github.com/5at4am/5at4am-portfolio.git`). As of 2026-10-27 it carries the five commits that built the
+animated sections (`67ff7b9` through `df43e2e`) plus five follow-up commits covering the live Experience beam,
+the issuer bento for Achievements, the site shell and interaction primitives, the PWA and chat/SEO work, and the
+docs and memory updates. `main` is never forced; see the hosting section for the three-repo topology. Commit
+only when explicitly asked.
