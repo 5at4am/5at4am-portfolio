@@ -12,6 +12,8 @@ export const SITE = {
   domain: "5at4am.me",
   location: "Bhopal, India",
   url: "https://5at4am.me",
+  /** ISO date of the last material content change. Drives sitemap and JSON-LD freshness. */
+  updated: "2026-10-27",
 } as const;
 
 /**

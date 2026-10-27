@@ -1,5 +1,12 @@
 import { AWARDS } from "./achievements";
+import { CONTACT_LINKS } from "./contact";
 import { EXPERIENCE } from "./experience";
+import {
+  HOME_DESCRIPTION,
+  HOME_TITLE,
+  PAPER_DESCRIPTION,
+  PAPER_TITLE,
+} from "./metadata";
 import { EDUCATION, SITE } from "./site";
 
 /**
@@ -10,21 +17,27 @@ import { EDUCATION, SITE } from "./site";
  * the visible content, so nothing here is a new claim, only the same claims in a
  * form a machine can read.
  *
- * Emitted as a plain `<script type="application/ld+json">` from the root layout
- * rather than through a library, because `output: "export"` gives us static HTML
- * and there is nothing to hydrate. Everything is interpolated from the content
+ * Emitted as a plain `<script type="application/ld+json">` from the pages rather
+ * than through a library, because `output: "export"` gives us static HTML and
+ * there is nothing to hydrate. Everything is interpolated from the content
  * modules, so the schema cannot drift from the page that renders it — a second
  * hand-maintained copy of the job history would drift within one edit.
  *
  * `JSON.stringify` output is embedded in a script tag. The one hazard is a `</`
- * sequence inside a string, which would close the tag early, so it is escaped to
- * `<\/` — a JSON-legal escape that no HTML parser treats as the end of a script.
+ * sequence inside a string, which would close the tag early, so every `<` is
+ * escaped to `\u003c` — a JSON-legal escape that no HTML parser treats as the end
+ * of a script.
  */
 
 export type JsonLd = Record<string, unknown>;
 
 const PERSON_ID = `${SITE.url}/#person`;
 const SITE_ID = `${SITE.url}/#website`;
+
+const CURRENT_ROLE = EXPERIENCE.find((item) => item.end === null);
+const EMAIL_HREF = CONTACT_LINKS.find((link) => link.href.startsWith("mailto:"))?.href;
+const [LOCALITY, COUNTRY] = SITE.location.split(",").map((part) => part.trim());
+const ADDRESS_COUNTRY = COUNTRY === "India" ? "IN" : COUNTRY;
 
 /** `2025-12` to the months a person would say out loud. */
 const MONTH_NAMES = [
@@ -49,9 +62,17 @@ function parseMonth(key: MonthKey): { year: number; month: number } {
   return { year, month };
 }
 
-function isoDate(key: MonthKey): string {
+/** First day of the month, so a start date covers the month it names. */
+function monthStart(key: MonthKey): string {
   const { year, month } = parseMonth(key);
-  return `${year}-${String(month).padStart(2, "0")}`;
+  return `${year}-${String(month).padStart(2, "0")}-01`;
+}
+
+/** Last day of the month, so an end date covers the month it names. */
+function monthEnd(key: MonthKey): string {
+  const { year, month } = parseMonth(key);
+  const day = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 /** Human-readable, e.g. "December 2025". */
@@ -60,9 +81,25 @@ function monthLabel(key: MonthKey): string {
   return `${MONTH_NAMES[month - 1]} ${year}`;
 }
 
-/** Today, as an ISO date. The date the visitor loaded the page. */
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
+/**
+ * Awards carry display dates ("Dec 2025", "2026"). Schema.org wants ISO 8601, so
+ * month names become `YYYY-MM`; a bare year stays a bare year rather than
+ * inventing a day or a month the record does not support.
+ */
+function awardDate(value?: string): string | undefined {
+  if (!value) return undefined;
+  if (/^\d{4}$/.test(value)) return value;
+
+  const match = /^([A-Za-z]{3})[a-z]*\s+(\d{4})$/.exec(value);
+  if (!match) return value;
+
+  const [, monthName, year] = match;
+  if (!monthName || !year) return value;
+
+  const month = MONTH_NAMES.findIndex((name) =>
+    name.toLowerCase().startsWith(monthName.toLowerCase()),
+  );
+  return month === -1 ? value : `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
 /** ISO 8601 duration, which `startDate`/`endDate` accept for ongoing work. */
@@ -78,12 +115,11 @@ function isoDuration(start: MonthKey, end: MonthKey | null, present: number): st
   return out === "P" ? "P1M" : out;
 }
 
-function presentMonthIndex(): number {
-  const now = new Date();
-  return now.getFullYear() * 12 + now.getMonth();
-}
-
-const present = presentMonthIndex();
+/** The content freshness date, not the build date, so schema stays deterministic. */
+const present = (() => {
+  const [year, month] = SITE.updated.split("-").map(Number) as [number, number];
+  return year * 12 + month;
+})();
 
 /**
  * The person and everything attached to them.
@@ -91,10 +127,8 @@ const present = presentMonthIndex();
  * `sameAs` carries the two profiles the site links to, which is how a search
  * engine connects this document to the rest of the same identity.
  *
- * `alumniOf` is `LNCT University` rather than an education block, because the
- * degree is still in progress (2023 to 2027) and stating an `alumniOf`
- * relationship for a student who has not graduated would be a claim the site
- * does not otherwise make.
+ * `affiliation` is the university; the degree is still in progress (2023 to
+ * 2027), so `alumniOf` would claim a graduation the site does not.
  *
  * `hasCredential` carries only the awards scoped `personal` or with no scope at
  * all. The team results are deliberately excluded: they belong to a team, and
@@ -103,13 +137,16 @@ const present = presentMonthIndex();
 export function personJsonLd(): JsonLd {
   const credentials = AWARDS.filter(
     (award) => award.scope !== "team",
-  ).map((award) => ({
-    "@type": "EducationalOccupationalCredential",
-    name: award.title,
-    ...(award.date ? { dateCreated: award.date } : {}),
-    ...(award.credentialId ? { identifier: award.credentialId } : {}),
-    recognizedBy: { "@type": "Organization", name: award.org },
-  }));
+  ).map((award) => {
+    const date = awardDate(award.date);
+    return {
+      "@type": "EducationalOccupationalCredential",
+      name: award.title,
+      ...(date ? { dateCreated: date } : {}),
+      ...(award.credentialId ? { identifier: award.credentialId } : {}),
+      recognizedBy: { "@type": "Organization", name: award.org },
+    };
+  });
 
   return {
     "@context": "https://schema.org",
@@ -118,12 +155,21 @@ export function personJsonLd(): JsonLd {
     name: SITE.name,
     alternateName: SITE.handle,
     url: SITE.url,
-    jobTitle: "AI Engineer Intern",
-    description: `${SITE.name} is a ${SITE.role.toLowerCase()} building LLM, RAG, OCR, and multi-agent systems end to end with Python, FastAPI, and LangChain.`,
-    email: "mailto:satraj6465@gmail.com",
+    jobTitle: CURRENT_ROLE?.role ?? "AI Engineer Intern",
+    description: HOME_DESCRIPTION,
+    ...(EMAIL_HREF ? { email: EMAIL_HREF } : {}),
+    ...(CURRENT_ROLE
+      ? {
+          worksFor: {
+            "@type": "Organization",
+            name: CURRENT_ROLE.org,
+          },
+        }
+      : {}),
     address: {
       "@type": "PostalAddress",
-      addressLocality: SITE.location,
+      ...(LOCALITY ? { addressLocality: LOCALITY } : {}),
+      ...(ADDRESS_COUNTRY ? { addressCountry: ADDRESS_COUNTRY } : {}),
     },
     sameAs: [
       "https://github.com/5at4am",
@@ -135,14 +181,17 @@ export function personJsonLd(): JsonLd {
       "Retrieval-Augmented Generation",
       "Optical Character Recognition",
       "Multi-agent Systems",
+      "Workflow Automation",
       "Python",
       "FastAPI",
       "LangChain",
+      "TypeScript",
       "Next.js",
     ],
-    alumniOf: {
+    affiliation: {
       "@type": "CollegeOrUniversity",
       name: EDUCATION.institution,
+      description: `${EDUCATION.degree}, ${EDUCATION.period}`,
     },
     hasCredential: credentials,
   };
@@ -162,6 +211,8 @@ export function webSiteJsonLd(): JsonLd {
     "@id": SITE_ID,
     url: SITE.url,
     name: `${SITE.name} | ${SITE.handle}`,
+    alternateName: SITE.domain,
+    description: HOME_DESCRIPTION,
     inLanguage: "en",
     publisher: { "@id": PERSON_ID },
   };
@@ -173,10 +224,12 @@ export function profilePageJsonLd(): JsonLd {
     "@type": "ProfilePage",
     "@id": `${SITE.url}/#profilepage`,
     url: SITE.url,
-    name: `${SITE.name} | ${SITE.role}`,
+    name: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     isPartOf: { "@id": SITE_ID },
     about: { "@id": PERSON_ID },
-    dateModified: today(),
+    inLanguage: "en",
+    dateModified: SITE.updated,
     mainEntity: { "@id": PERSON_ID },
   };
 }
@@ -211,9 +264,9 @@ export function personWorkHistory(): JsonLd {
         name: item.role,
         description: item.outcome,
         skills: [...item.bullets],
-        startDate: isoDate(item.start),
+        startDate: monthStart(item.start),
         ...(item.end
-          ? { endDate: isoDate(item.end) }
+          ? { endDate: monthEnd(item.end) }
           : { duration: isoDuration(item.start, item.end, present) }),
         ...(item.end
           ? {}
@@ -231,24 +284,80 @@ export function personWorkHistory(): JsonLd {
   };
 }
 
-/** Everything, as one array of documents ready to render as script tags. */
-export function allJsonLd(): readonly JsonLd[] {
-  return [
-    personJsonLd(),
-    webSiteJsonLd(),
-    profilePageJsonLd(),
-    personWorkHistory(),
-  ];
+/**
+ * `/paper` describes its own page and breadcrumb. It deliberately does not carry
+ * the home `ProfilePage` or work-history list, because those describe content
+ * that is not on this route.
+ */
+export function paperPageJsonLd(): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${SITE.url}/paper#webpage`,
+    url: `${SITE.url}/paper`,
+    name: PAPER_TITLE,
+    description: PAPER_DESCRIPTION,
+    isPartOf: { "@id": SITE_ID },
+    about: {
+      "@type": "EducationalOccupationalCredential",
+      name: "Estrel.ai capstone certificate",
+    },
+    inLanguage: "en",
+    dateModified: SITE.updated,
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: `${SITE.url}/og.png`,
+      width: 1200,
+      height: 630,
+      caption: `${SITE.name}, ${SITE.role}`,
+    },
+  };
+}
+
+export function paperBreadcrumbJsonLd(): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE.url,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "3D Paper Certificate",
+        item: `${SITE.url}/paper`,
+      },
+    ],
+  };
+}
+
+/** Site-wide identity, true on every route. */
+export function siteJsonLd(): readonly JsonLd[] {
+  return [personJsonLd(), webSiteJsonLd()];
+}
+
+/** Home-only documents. */
+export function homeJsonLd(): readonly JsonLd[] {
+  return [profilePageJsonLd(), personWorkHistory()];
+}
+
+/** `/paper`-only documents. */
+export function paperJsonLd(): readonly JsonLd[] {
+  return [paperPageJsonLd(), paperBreadcrumbJsonLd()];
 }
 
 /**
  * Serialise for embedding in a `<script>` element.
  *
- * `JSON.stringify` then `<` to `<`, which is JSON-legal and is the standard way
- * to stop a value containing `</script>` from closing the tag early. The
- * replacement is deliberately left incomplete — `\u003c` would work equally and
- * both are inert to an HTML parser — rather than a full escape pass, because a
- * partial replace is easy to verify by eye and there is no `</` in this data.
+ * `JSON.stringify` then every `<` to `\u003c`, which is JSON-legal and is the
+ * standard way to stop a value containing `</script>` from closing the tag early.
+ * The replacement is deliberately left incomplete — `\u003c` would work equally
+ * and both are inert to an HTML parser — rather than a full escape pass, because
+ * a partial replace is easy to verify by eye and there is no `</` in this data.
  */
 export function serializeJsonLd(value: JsonLd): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");

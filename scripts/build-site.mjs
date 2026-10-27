@@ -50,11 +50,11 @@ async function main() {
 
   await writeFile(path.join(siteDir, ".nojekyll"), NOJEKYLL);
 
-  // GitHub Pages serves `/profile` by looking for `profile.html` then
-  // `profile/index.html`. The export emits `profile.html` with the default
+  // GitHub Pages serves `/paper` by looking for `paper.html` then
+  // `paper/index.html`. The export emits `paper.html` with the default
   // `trailingSlash: false`, which Pages resolves, so nothing to rewrite. The
   // entry file just has to stay lowercase or Pages 404s on it.
-  const entries = ["index.html", "profile.html", "paper.html"];
+  const entries = ["index.html", "paper.html"];
   for (const entry of entries) {
     if (!existsSync(path.join(siteDir, entry))) {
       console.warn(`warning: expected ${entry} in the export, but it is missing.`);

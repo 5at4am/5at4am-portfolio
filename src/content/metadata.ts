@@ -11,16 +11,18 @@ import { SITE } from "./site";
  * route. Page-level objects only override what differs.
  */
 
-const HOME_TITLE = `${SITE.name} | ${SITE.role}`;
-const HOME_DESCRIPTION = `${SITE.name}, ${SITE.role}. Builds LLM, RAG, OCR, and multi-agent systems end to end with Python, FastAPI, and LangChain.`;
+export const HOME_TITLE = `${SITE.name} | ${SITE.role}`;
+export const HOME_DESCRIPTION = `${SITE.name}, ${SITE.role}. Builds LLM, RAG, OCR, and multi-agent systems end to end with Python, FastAPI, and LangChain.`;
 
-const PAPER_TITLE = `3D Paper Certificate | ${SITE.name}`;
-const PAPER_DESCRIPTION = `The ${SITE.role} certificate as an interactive translucent 3D paper document, rendered in the browser.`;
+export const PAPER_TITLE = `3D Paper Certificate | ${SITE.name}`;
+export const PAPER_DESCRIPTION = `The Estrel.ai capstone certificate as an interactive translucent 3D paper document, rendered in the browser.`;
 
 const OG_IMAGE = {
   url: `${SITE.url}/og.png`,
   width: 1200,
   height: 630,
+  alt: `${SITE.name}, ${SITE.role}`,
+  type: "image/png",
 };
 
 /** Site-wide defaults, applied once in `app/layout.tsx`. */
@@ -28,19 +30,59 @@ export const rootMetadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
+  applicationName: SITE.name,
   authors: [{ name: SITE.name, url: SITE.url }],
+  creator: SITE.name,
+  publisher: SITE.name,
+  category: "technology",
+  keywords: [
+    "Satyam Raj",
+    "AI engineer",
+    "LLM engineer",
+    "RAG",
+    "OCR",
+    "multi-agent systems",
+    "Python",
+    "FastAPI",
+    "LangChain",
+    "Bhopal",
+    "portfolio",
+  ],
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   /* Absolute-path references into `public/`. `metadataBase` above resolves them
      to `https://5at4am.me/…` in the exported HTML, so the same literals work in
      dev and in the static build. The manifest was previously absent entirely,
      which also meant no `theme-color`, so mobile browsers painted their own
-     chrome around the site. */
+     chrome around the site.
+
+     `src/app/favicon.ico` is a file convention, so Next emits the favicon link
+     itself. Restating `/favicon.ico` here produced a second icon tag for the
+     same file. */
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/favicon.ico", sizes: "32x32" },
-    ],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: SITE.name,
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     type: "website",
@@ -48,13 +90,14 @@ export const rootMetadata: Metadata = {
     siteName: SITE.name,
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
+    locale: "en_IN",
     images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    images: [OG_IMAGE.url],
+    images: [{ url: OG_IMAGE.url, alt: OG_IMAGE.alt }],
   },
 };
 
@@ -87,20 +130,25 @@ export const paperMetadata: Metadata = {
   title: PAPER_TITLE,
   description: PAPER_DESCRIPTION,
   alternates: { canonical: "/paper" },
-  /* `images` restated on both objects. Next merges route metadata over the root
-     shallowly, and a nested `openGraph` REPLACES the inherited object rather
-     than merging into it — so overriding the title dropped `images` entirely.
-     Verified in the export before this fix: `og:image` present on `/`, absent
-     on `/paper`. */
+  /* Site-level Open Graph fields are restated here. Next merges route metadata
+     over the root shallowly, and a nested `openGraph` REPLACES the inherited
+     object rather than merging into it — so overriding the title dropped
+     `images`, and the route inherited neither `url` nor the other root fields.
+     Verified in an earlier export: `og:image` was present on `/`, absent on
+     `/paper`; `og:url` was absent on both after the route override. */
   openGraph: {
+    type: "website",
+    url: `${SITE.url}/paper`,
+    siteName: SITE.name,
     title: PAPER_TITLE,
     description: PAPER_DESCRIPTION,
+    locale: "en_IN",
     images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: PAPER_TITLE,
     description: PAPER_DESCRIPTION,
-    images: [OG_IMAGE.url],
+    images: [{ url: OG_IMAGE.url, alt: OG_IMAGE.alt }],
   },
 };

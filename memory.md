@@ -54,6 +54,8 @@ npm run verify:shaders      # validates 3D-paper source files hash to published 
   (`src/app/page.tsx`). Pure composition; every string comes from `src/content`. Hero is not in the nav.
 - `/paper` — 3D paper showcase (`src/components/layout/paper-header.tsx`, `src/app/paper/page.tsx`,
   `src/components/three-d-paper/connect-three-d-paper.tsx`).
+- `/sitemap.xml` and `/robots.txt` are generated metadata routes (`src/app/sitemap.ts`, `src/app/robots.ts`),
+  not static files. Both need `export const dynamic = "force-static"` under `output: "export"`.
 - `/profile` and `/theme-lab` are both **removed**. Everything that pointed at the profile page went with it:
   the header icon rail's `User` link, the footer's "Full profile" button and "Profile" nav row, and the 404
   doormat. `profileMetadata` is gone from `content/metadata.ts`. The deleted source is recoverable with
@@ -244,7 +246,7 @@ frame-accurate capture was not possible in this environment. **Do not claim the 
     Under reduced motion the reorder does not happen at all — only the colour changes — because reordering is a change
     of *content order*, and the one thing that must never be animated away from a reader who cannot see it happen is a
     reordering.
-- `src/content/metadata.ts` — `rootMetadata` + `homeMetadata`; `src/content/types.ts` — shared types.
+- `src/content/metadata.ts` — `rootMetadata` + `homeMetadata` + `paperMetadata`; `src/content/types.ts` — shared types.
 
 - **The live Experience and Achievements sections were rebuilt as two different shapes on 2026-10-27.** The home
   page no longer renders two copies of a timeline.
@@ -678,14 +680,40 @@ fault. Measured, not read.
 
 ### Added
 
-- **JSON-LD** (`src/content/json-ld.ts`): `Person`, `WebSite`, `ProfilePage`, and the work history as an
-  `ItemList` of `Occupation`. Derived from `SITE` / `EXPERIENCE` / `AWARDS` / `EDUCATION`, so it cannot drift from
-  the rendered page. `hasCredential` **excludes** `scope: "team"` awards — an edge to a team result is a statement
-  about the person. Ongoing roles carry `duration` (ISO 8601) and no `endDate`.
-- **One `<script type="application/ld+json">` per document.** The first version joined them with `\n` into one tag,
-  which is not valid JSON and which a crawler discards whole — caught in the export, not in review.
+- **JSON-LD** (`src/content/json-ld.ts`): `Person` + `WebSite` are site-wide in the root layout; the home route
+  adds `ProfilePage` + the work history as an `ItemList` of `Occupation`; `/paper` adds its own `WebPage` +
+  `BreadcrumbList` and deliberately does **not** inherit the profile/work documents. Derived from
+  `SITE` / `EXPERIENCE` / `AWARDS` / `EDUCATION`, so it cannot drift from the rendered page. `hasCredential`
+  **excludes** `scope: "team"` awards — an edge to a team result is a statement about the person. Ongoing roles
+  carry `duration` (ISO 8601) and no `endDate`; `startDate`/`endDate` cover the first/last day of the named month.
+  `affiliation` (not `alumniOf`) is the in-progress university, and award display dates are normalised to ISO.
+- **One `<script type="application/ld+json">` per document** (`src/components/seo/json-ld.tsx`). The first version
+  joined them with `\n` into one tag, which is not valid JSON and which a crawler discards whole — caught in the
+  export, not in review.
 - **Web manifest** (`public/manifest.webmanifest`) + `public/icon.svg` + `apple-touch-icon.png`, generated from the
   SVG by `scripts/generate-touch-icons.mjs` (`npm run icons:touch`) so the raster cannot drift from the vector.
+
+### SEO and discovery (2026-10-27)
+
+- **Sitemap and robots are generated metadata routes, not committed files.** `src/app/sitemap.ts` and
+  `src/app/robots.ts` replace `public/sitemap.xml` and `public/robots.txt`. Both declare
+  `export const dynamic = "force-static"`; without it `output: "export"` fails while collecting `/sitemap.xml`.
+- **Sitemap covers only routes that exist:** `/` (monthly, priority 1) and `/paper` (yearly, priority 0.6), both
+  with `lastmod`. The home `<loc>` is `https://5at4am.me` with no trailing slash, matching the emitted canonical.
+- **Robots** allows everything (including `_next`, so Google can render the page), emits `Host: 5at4am.me`, and
+  points at `https://5at4am.me/sitemap.xml`.
+- **Metadata** now sets root `robots`/`googlebot` (`max-image-preview:large`, unlimited snippet/video preview),
+  a modest keyword list, creator/publisher, `en_IN` Open Graph locale, image `type`/`alt`, Twitter image alt,
+  `appleWebApp`, and format detection. `/paper` restates `og:url`, `og:site_name`, `og:type`, `og:locale`, and
+  images because a nested `openGraph` object replaces the root one. The explicit `/favicon.ico` metadata entry was
+  removed; `src/app/favicon.ico` is a file convention and already emits the link.
+- **One freshness date:** `SITE.updated = "2026-10-27"` drives sitemap `lastmod`, `ProfilePage`/`WebPage`
+  `dateModified`, and the ongoing-role duration. Bump it when content changes.
+- **Build check cleaned:** `scripts/build-site.mjs` no longer expects the removed `profile.html`; a clean build now
+  checks only `index.html` and `paper.html`.
+- **Verified in `site/`:** sitemap and robots parse; home JSON-LD is `Person, WebSite, ProfilePage, ItemList`;
+  `/paper` JSON-LD is `Person, WebSite, WebPage, BreadcrumbList`; `/paper` has its own `og:url`; there is no
+  duplicate favicon link.
 
 ### Semantic + motion pass (second round, 2026-10-01)
 

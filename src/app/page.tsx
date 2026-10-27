@@ -2,6 +2,7 @@ import { RajBall } from "@/components/layout/raj-ball";
 import { PageShell } from "@/components/layout/page-shell";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
+import { JsonLd } from "@/components/seo/json-ld";
 import { AboutSection } from "@/components/sections/about-section";
 import { AchievementsSection } from "@/components/sections/achievements-section";
 import { ContactSection } from "@/components/sections/contact-section";
@@ -11,6 +12,7 @@ import { ProjectsSection } from "@/components/sections/projects-section";
 import { SkillsSection } from "@/components/sections/skills-section";
 import { WordsPreloader } from "@/components/ui/words-preloader";
 import { PortfolioChat } from "@/components/ui/portfolio-chat";
+import { homeJsonLd } from "@/content/json-ld";
 import { homeMetadata } from "@/content/metadata";
 
 export const metadata = homeMetadata;
@@ -67,6 +69,11 @@ export default function HomePage() {
         </>
       }
     >
+      {/*
+        Home-only structured data: ProfilePage and the work-history ItemList.
+        The layout owns Person and WebSite, which are true on every route.
+      */}
+      <JsonLd documents={homeJsonLd()} />
       <HeroSection />
       <AboutSection />
       <ExperienceSection />

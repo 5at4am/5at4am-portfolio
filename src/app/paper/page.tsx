@@ -1,8 +1,10 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { PaperHeader } from "@/components/layout/paper-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { JsonLd } from "@/components/seo/json-ld";
 import { ConnectThreeDPaper } from "@/components/three-d-paper/connect-three-d-paper";
 import { ExternalLink } from "@/components/ui/external-link";
+import { paperJsonLd } from "@/content/json-ld";
 import { paperMetadata } from "@/content/metadata";
 import { PAPER_CREDIT } from "@/content/paper";
 
@@ -19,6 +21,11 @@ export const metadata = paperMetadata;
 export default function PaperPage() {
   return (
     <PageShell header={<PaperHeader />} footer={<SiteFooter />}>
+      {/*
+        The paper route describes its own page and breadcrumb. It deliberately
+        does not inherit the home ProfilePage or work-history ItemList.
+      */}
+      <JsonLd documents={paperJsonLd()} />
       <section
         /* Named by the heading below, so this becomes a real `region` landmark.
            It was an unnamed `<section>` before, which means it was not exposed as

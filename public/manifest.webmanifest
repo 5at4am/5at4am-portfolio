@@ -2,12 +2,15 @@
   "name": "Satyam Raj — AI Engineer",
   "short_name": "5at4am",
   "description": "Satyam Raj, AI Engineer Intern at Estrel.ai. Builds LLM, RAG, OCR, and multi-agent systems end to end with Python, FastAPI, and LangChain.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#09090b",
   "lang": "en",
+  "categories": ["portfolio", "technology"],
   "icons": [
     {
       "src": "/icon.svg",
