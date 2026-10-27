@@ -1,4 +1,5 @@
-User-agent: *
+User-Agent: *
 Allow: /
 
+Host: 5at4am.me
 Sitemap: https://5at4am.me/sitemap.xml
