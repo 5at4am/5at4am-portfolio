@@ -75,8 +75,15 @@ export const rootMetadata: Metadata = {
      itself. Restating `/favicon.ico` here produced a second icon tag for the
      same file. */
   manifest: "/manifest.webmanifest",
+  /* Google Search does not list SVG as a supported favicon format. Keep the
+     vector as the source for the committed PNGs (`npm run icons:touch`) and
+     declare the raster sizes here. `src/app/favicon.ico` is still emitted by
+     Next's file convention as the broad browser fallback. */
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
   appleWebApp: {

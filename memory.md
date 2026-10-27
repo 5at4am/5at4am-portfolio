@@ -690,8 +690,12 @@ fault. Measured, not read.
 - **One `<script type="application/ld+json">` per document** (`src/components/seo/json-ld.tsx`). The first version
   joined them with `\n` into one tag, which is not valid JSON and which a crawler discards whole — caught in the
   export, not in review.
-- **Web manifest** (`public/manifest.webmanifest`) + `public/icon.svg` + `apple-touch-icon.png`, generated from the
-  SVG by `scripts/generate-touch-icons.mjs` (`npm run icons:touch`) so the raster cannot drift from the vector.
+- **Web manifest** (`public/manifest.webmanifest`) + `public/icon.svg` as the source, with committed
+  `icon-192.png`, `icon-512.png`, and `apple-touch-icon.png` generated from the SVG by
+  `scripts/generate-touch-icons.mjs` (`npm run icons:touch`) so the rasters cannot drift from the vector.
+  The `<link rel="icon">` set is the 192/512 PNGs plus the Next-emitted `favicon.ico`; Google Search does not
+  list SVG as a supported favicon format, so the SVG stays the source and PWA fallback rather than the link
+  Google is asked to use.
 
 ### SEO and discovery (2026-10-27)
 
