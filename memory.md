@@ -711,6 +711,10 @@ fault. Measured, not read.
   `appleWebApp`, and format detection. `/paper` restates `og:url`, `og:site_name`, `og:type`, `og:locale`, and
   images because a nested `openGraph` object replaces the root one. The explicit `/favicon.ico` metadata entry was
   removed; `src/app/favicon.ico` is a file convention and already emits the link.
+- **Share-card art** (`public/og-source.svg` → `public/og.png`) follows the live hero composition: monochrome dark
+  backdrop, floating nav, eye mark, centered role/name/copy, and soft layered waves. `og-v3.png` is the versioned
+  public asset used by root and `/paper` share metadata to avoid stale chat-app previews. Render PNG from SVG with
+  `sharp` at 1200×630 when changing the card.
 - **One freshness date:** `SITE.updated = "2026-10-27"` drives sitemap `lastmod`, `ProfilePage`/`WebPage`
   `dateModified`, and the ongoing-role duration. Bump it when content changes.
 - **Build check cleaned:** `scripts/build-site.mjs` no longer expects the removed `profile.html`; a clean build now

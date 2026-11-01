@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="ground" x1="600" y1="0" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#080809"/><stop offset=".57" stop-color="#09090b"/><stop offset="1" stop-color="#171719"/>
+    </linearGradient>
+    <radialGradient id="mist" cx="0" cy="0" r="1" gradientTransform="matrix(0 380 -720 0 600 658)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a5a5a8" stop-opacity=".88"/><stop offset=".44" stop-color="#66666a" stop-opacity=".62"/><stop offset="1" stop-color="#151517" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ridge1" x1="600" y1="272" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#27272a" stop-opacity=".1"/><stop offset=".55" stop-color="#303034" stop-opacity=".72"/><stop offset="1" stop-color="#55555a" stop-opacity=".92"/>
+    </linearGradient>
+    <linearGradient id="ridge2" x1="598" y1="333" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#39393d" stop-opacity=".12"/><stop offset=".64" stop-color="#77777b" stop-opacity=".58"/><stop offset="1" stop-color="#a0a0a4" stop-opacity=".82"/>
+    </linearGradient>
+    <linearGradient id="ridge3" x1="600" y1="420" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55555a" stop-opacity=".05"/><stop offset="1" stop-color="#b0b0b4" stop-opacity=".76"/>
+    </linearGradient>
+    <filter id="soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="20"/></filter>
+    <linearGradient id="shade" x1="600" y1="0" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset=".42" stop-color="#080809" stop-opacity=".15"/><stop offset=".72" stop-color="#080809" stop-opacity="0"/><stop offset="1" stop-color="#080809" stop-opacity=".12"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#ground)" d="M0 0h1200v630H0z"/>
+  <ellipse cx="600" cy="640" rx="560" ry="280" fill="#88888c" fill-opacity=".3" filter="url(#soft)"/>
+  <path d="M0 414c94-18 114-126 236-112 106 12 115 58 223 18 112-42 168-116 274-89 106 27 133 88 223 75 94-14 177 35 244 14v310H0V414Z" fill="url(#ridge1)"/>
+  <path d="M0 475c91-48 154-78 237-65 91 14 138 33 216 7 91-30 157-97 251-80 91 17 128 68 220 56 112-15 185 32 276 8v229H0V475Z" fill="url(#ridge2)"/>
+  <path d="M0 546c115-50 197-81 293-61 77 16 128 27 204 4 79-24 127-69 212-53 77 14 135 53 224 41 94-13 177 26 267 3v150H0V546Z" fill="url(#ridge3)"/>
+  <path fill="url(#mist)" d="M0 315h1200v315H0z"/>
+  <path fill="url(#shade)" d="M0 0h1200v630H0z"/>
+
+  <!-- Floating site navigation, simplified from the live hero -->
+  <rect x="206" y="18" width="788" height="47" rx="23.5" fill="#09090b" fill-opacity=".78" stroke="#fff" stroke-opacity=".12"/>
+  <text x="231" y="47" fill="#e4e4e7" font-family="Arial,sans-serif" font-size="15" font-weight="700">5at4am</text>
+  <text x="318" y="47" fill="#fafafa" font-family="Arial,sans-serif" font-size="14" font-weight="700">About</text>
+  <text x="395" y="47" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14" font-weight="600">Experience</text>
+  <text x="513" y="47" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14" font-weight="600">Projects</text>
+  <text x="599" y="47" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14" font-weight="600">Skills</text>
+  <text x="670" y="47" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14" font-weight="600">Achievements</text>
+  <text x="813" y="47" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14" font-weight="600">Contact</text>
+
+  <!-- Eye mark -->
+  <circle cx="600" cy="116" r="23" fill="#fafafa"/>
+  <ellipse cx="594" cy="116" rx="2.5" ry="5.5" fill="#09090b"/>
+  <ellipse cx="606" cy="116" rx="2.5" ry="5.5" fill="#09090b"/>
+  <text x="600" y="164" text-anchor="middle" fill="#a1a1aa" font-family="'Courier New',monospace" font-size="11" letter-spacing="3">AI ENGINEER INTERN AT ESTREL.AI</text>
+
+  <text x="600" y="318" text-anchor="middle" fill="#fafafa" font-family="Arial,sans-serif" font-size="106" font-weight="700" letter-spacing="-4">Satyam</text>
+  <text x="600" y="397" text-anchor="middle" fill="#d4d4d8" font-family="Arial,sans-serif" font-size="21">I turn complex workflows into intelligent, AI-powered products.</text>
+  <text x="600" y="431" text-anchor="middle" fill="#a1a1aa" font-family="Arial,sans-serif" font-size="14">Building practical AI systems, from LLM-powered applications to automated workflows.</text>
+  <text x="600" y="596" text-anchor="middle" fill="#e4e4e7" fill-opacity=".78" font-family="'Courier New',monospace" font-size="12" letter-spacing="2">5AT4AM.ME</text>
+</svg>

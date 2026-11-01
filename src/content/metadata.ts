@@ -18,7 +18,8 @@ export const PAPER_TITLE = `3D Paper Certificate | ${SITE.name}`;
 export const PAPER_DESCRIPTION = `The Estrel.ai capstone certificate as an interactive translucent 3D paper document, rendered in the browser.`;
 
 const OG_IMAGE = {
-  url: `${SITE.url}/og.png`,
+  // Version the public URL so chat apps do not keep serving a cached older card.
+  url: `${SITE.url}/og-v3.png`,
   width: 1200,
   height: 630,
   alt: `${SITE.name}, ${SITE.role}`,
